@@ -3,8 +3,6 @@ import json
 import hmac
 import hashlib
 import base64
-import psycopg2
-import psycopg2.extras
 from datetime import datetime
 from functools import wraps
 from flask import (Flask, render_template, request, jsonify,
@@ -12,9 +10,12 @@ from flask import (Flask, render_template, request, jsonify,
 import io
 import zipfile
 
+import psycopg
+from psycopg.rows import dict_row
+
 app = Flask(__name__)
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-in-prod")
-API_KEY    = os.environ.get("API_KEY", "rh-api-key-change-in-prod")
+SECRET_KEY   = os.environ.get("SECRET_KEY", "dev-secret-change-in-prod")
+API_KEY      = os.environ.get("API_KEY", "rh-api-key-change-in-prod")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
 # ------------------------------------------------------------------
@@ -22,36 +23,33 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "")
 # ------------------------------------------------------------------
 
 def get_db():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
+    return psycopg.connect(DATABASE_URL)
 
 
 def init_db():
     with get_db() as conn:
-        with conn.cursor() as c:
-            c.execute("""
-                CREATE TABLE IF NOT EXISTS respostas (
-                    id          SERIAL PRIMARY KEY,
-                    token       TEXT UNIQUE NOT NULL,
-                    filial      TEXT,
-                    mat         TEXT,
-                    nome        TEXT,
-                    dados       JSONB,
-                    created_at  TIMESTAMPTZ DEFAULT NOW()
-                )
-            """)
-            c.execute("""
-                CREATE TABLE IF NOT EXISTS arquivos (
-                    id          SERIAL PRIMARY KEY,
-                    resposta_id INTEGER REFERENCES respostas(id) ON DELETE CASCADE,
-                    campo       TEXT NOT NULL,
-                    nome_orig   TEXT,
-                    mime        TEXT,
-                    dados       BYTEA NOT NULL,
-                    created_at  TIMESTAMPTZ DEFAULT NOW()
-                )
-            """)
-        conn.commit()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS respostas (
+                id          SERIAL PRIMARY KEY,
+                token       TEXT UNIQUE NOT NULL,
+                filial      TEXT,
+                mat         TEXT,
+                nome        TEXT,
+                dados       JSONB,
+                created_at  TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS arquivos (
+                id          SERIAL PRIMARY KEY,
+                resposta_id INTEGER REFERENCES respostas(id) ON DELETE CASCADE,
+                campo       TEXT NOT NULL,
+                nome_orig   TEXT,
+                mime        TEXT,
+                dados       BYTEA NOT NULL,
+                created_at  TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
 
 
 # ------------------------------------------------------------------
@@ -79,7 +77,7 @@ def verificar_token(token: str):
 
 
 # ------------------------------------------------------------------
-# Auth decorator for internal API
+# Auth decorator
 # ------------------------------------------------------------------
 
 def api_auth(f):
@@ -108,69 +106,60 @@ def formulario(token):
         return render_template("invalido.html"), 400
 
     if request.method == "GET":
-        # Check if already submitted
         with get_db() as conn:
-            with conn.cursor() as c:
-                c.execute("SELECT id FROM respostas WHERE token=%s", (token,))
-                if c.fetchone():
-                    return render_template("ja_respondido.html", nome=dados.get("nome", ""))
+            row = conn.execute("SELECT id FROM respostas WHERE token=%s", (token,)).fetchone()
+            if row:
+                return render_template("ja_respondido.html", nome=dados.get("nome", ""))
         return render_template("form.html", d=dados, token=token)
 
-    # POST — save response
-    form = request.form
+    # POST — salvar resposta
+    form  = request.form
     files = request.files
 
     dados_resp = {
-        "nome":          form.get("nome", ""),
-        "cpf":           form.get("cpf", ""),
-        "rg":            form.get("rg", ""),
-        "telefone":      form.get("telefone", ""),
-        "email":         form.get("email", ""),
-        "estado_civil":  form.get("estado_civil", ""),
-        "cep":           form.get("cep", ""),
-        "endereco":      form.get("endereco", ""),
-        "numero":        form.get("numero", ""),
-        "complemento":   form.get("complemento", ""),
-        "bairro":        form.get("bairro", ""),
-        "cidade":        form.get("cidade", ""),
-        "estado":        form.get("estado", ""),
-        "dependentes":   json.loads(form.get("dependentes_json", "[]")),
+        "nome":         form.get("nome", ""),
+        "cpf":          form.get("cpf", ""),
+        "rg":           form.get("rg", ""),
+        "telefone":     form.get("telefone", ""),
+        "email":        form.get("email", ""),
+        "estado_civil": form.get("estado_civil", ""),
+        "cep":          form.get("cep", ""),
+        "endereco":     form.get("endereco", ""),
+        "numero":       form.get("numero", ""),
+        "complemento":  form.get("complemento", ""),
+        "bairro":       form.get("bairro", ""),
+        "cidade":       form.get("cidade", ""),
+        "estado":       form.get("estado", ""),
+        "dependentes":  json.loads(form.get("dependentes_json", "[]")),
     }
 
-    CAMPOS_ARQUIVO = [
-        "foto_rosto",
-        "comprovante_endereco",
-        "cert_casamento",
-    ]
-    # dependents' certs: cert_nasc_0, cert_nasc_1, ...
+    CAMPOS_ARQUIVO = ["foto_rosto", "comprovante_endereco", "cert_casamento"]
     for i in range(10):
         CAMPOS_ARQUIVO.append(f"cert_nasc_{i}")
 
     with get_db() as conn:
-        with conn.cursor() as c:
-            # Upsert — ignore if already exists
-            c.execute("""
-                INSERT INTO respostas (token, filial, mat, nome, dados)
-                VALUES (%s, %s, %s, %s, %s)
-                ON CONFLICT (token) DO NOTHING
-                RETURNING id
-            """, (token, dados.get("filial"), dados.get("mat"), dados_resp["nome"],
-                  json.dumps(dados_resp)))
-            row = c.fetchone()
-            if row is None:
-                return render_template("ja_respondido.html", nome=dados_resp["nome"])
-            resp_id = row[0]
+        row = conn.execute("""
+            INSERT INTO respostas (token, filial, mat, nome, dados)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (token) DO NOTHING
+            RETURNING id
+        """, (token, dados.get("filial"), dados.get("mat"),
+              dados_resp["nome"], json.dumps(dados_resp))).fetchone()
 
-            for campo in CAMPOS_ARQUIVO:
-                f = files.get(campo)
-                if f and f.filename:
-                    raw = f.read()
-                    if raw:
-                        c.execute("""
-                            INSERT INTO arquivos (resposta_id, campo, nome_orig, mime, dados)
-                            VALUES (%s, %s, %s, %s, %s)
-                        """, (resp_id, campo, f.filename, f.content_type, psycopg2.Binary(raw)))
-        conn.commit()
+        if row is None:
+            return render_template("ja_respondido.html", nome=dados_resp["nome"])
+
+        resp_id = row[0]
+
+        for campo in CAMPOS_ARQUIVO:
+            f = files.get(campo)
+            if f and f.filename:
+                raw = f.read()
+                if raw:
+                    conn.execute("""
+                        INSERT INTO arquivos (resposta_id, campo, nome_orig, mime, dados)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, (resp_id, campo, f.filename, f.content_type, raw))
 
     return redirect(url_for("obrigado"))
 
@@ -181,24 +170,22 @@ def obrigado():
 
 
 # ------------------------------------------------------------------
-# Internal API (called by main dashboard)
+# Internal API
 # ------------------------------------------------------------------
 
 @app.route("/api/respostas")
 @api_auth
 def api_respostas():
     with get_db() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as c:
-            c.execute("""
-                SELECT r.id, r.filial, r.mat, r.nome,
-                       r.dados, r.created_at,
-                       COUNT(a.id) AS qtd_arquivos
-                FROM respostas r
-                LEFT JOIN arquivos a ON a.resposta_id = r.id
-                GROUP BY r.id
-                ORDER BY r.created_at DESC
-            """)
-            rows = c.fetchall()
+        rows = conn.execute("""
+            SELECT r.id, r.filial, r.mat, r.nome,
+                   r.dados, r.created_at,
+                   COUNT(a.id) AS qtd_arquivos
+            FROM respostas r
+            LEFT JOIN arquivos a ON a.resposta_id = r.id
+            GROUP BY r.id
+            ORDER BY r.created_at DESC
+        """, row_factory=dict_row).fetchall()
     result = []
     for row in rows:
         d = dict(row)
@@ -211,9 +198,9 @@ def api_respostas():
 @api_auth
 def api_arquivo(arq_id):
     with get_db() as conn:
-        with conn.cursor() as c:
-            c.execute("SELECT nome_orig, mime, dados FROM arquivos WHERE id=%s", (arq_id,))
-            row = c.fetchone()
+        row = conn.execute(
+            "SELECT nome_orig, mime, dados FROM arquivos WHERE id=%s", (arq_id,)
+        ).fetchone()
     if not row:
         abort(404)
     nome_orig, mime, dados = row
@@ -224,26 +211,21 @@ def api_arquivo(arq_id):
 @app.route("/api/export_zip")
 @api_auth
 def api_export_zip():
-    """Download all responses + files as a ZIP."""
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         with get_db() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as c:
-                c.execute("SELECT * FROM respostas ORDER BY id")
-                respostas = c.fetchall()
-                c.execute("SELECT * FROM arquivos")
-                arquivos = c.fetchall()
+            respostas = conn.execute(
+                "SELECT * FROM respostas ORDER BY id", row_factory=dict_row
+            ).fetchall()
+            arquivos = conn.execute("SELECT * FROM arquivos").fetchall()
 
-        resumo = []
-        for r in respostas:
-            d = dict(r)
-            d["created_at"] = str(d["created_at"])
-            resumo.append(d)
-        zf.writestr("respostas.json", json.dumps(resumo, ensure_ascii=False, indent=2, default=str))
+        resumo = [{k: str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v
+                   for k, v in r.items()} for r in respostas]
+        zf.writestr("respostas.json", json.dumps(resumo, ensure_ascii=False, indent=2))
 
         for arq in arquivos:
-            folder = f"{arq['resposta_id']}_{arq['campo']}"
-            zf.writestr(f"arquivos/{folder}/{arq['nome_orig']}", bytes(arq['dados']))
+            folder = f"{arq[1]}_{arq[3]}"
+            zf.writestr(f"arquivos/{folder}/{arq[4]}", bytes(arq[6]))
 
     buf.seek(0)
     ts = datetime.now().strftime("%Y%m%d_%H%M")
@@ -254,17 +236,15 @@ def api_export_zip():
 @app.route("/api/pendentes")
 @api_auth
 def api_pendentes():
-    """List mats that have NOT responded yet."""
     mats = request.args.getlist("mat")
     if not mats:
         return jsonify([])
     with get_db() as conn:
-        with conn.cursor() as c:
-            placeholders = ",".join(["%s"] * len(mats))
-            c.execute(f"SELECT mat FROM respostas WHERE mat IN ({placeholders})", mats)
-            responderam = {row[0] for row in c.fetchall()}
-    pendentes = [m for m in mats if m not in responderam]
-    return jsonify(pendentes)
+        rows = conn.execute(
+            f"SELECT mat FROM respostas WHERE mat IN ({','.join(['%s']*len(mats))})", mats
+        ).fetchall()
+    responderam = {r[0] for r in rows}
+    return jsonify([m for m in mats if m not in responderam])
 
 
 # ------------------------------------------------------------------
