@@ -251,7 +251,13 @@ def api_pendentes():
 # Startup
 # ------------------------------------------------------------------
 
-if __name__ == "__main__":
-    if DATABASE_URL:
+# Inicializa o banco sempre que o app sobe
+if DATABASE_URL:
+    try:
         init_db()
+    except Exception as e:
+        print(f"[init_db] {e}")
+
+
+if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
