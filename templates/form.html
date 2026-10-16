@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Atualização Cadastral — Alliance</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root {
+  --bg:      #f0f2f7;
+  --card:    #ffffff;
+  --border:  #d1d9e6;
+  --text:    #1a1f36;
+  --muted:   #6b7280;
+  --purple:  #4b2ca3;
+  --purple2: #6d43c8;
+  --green:   #16a34a;
+  --red:     #dc2626;
+  --yellow:  #d97706;
+  --radius:  14px;
+  --shadow:  0 2px 12px rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text); font-size: 15px; min-height: 100vh; }
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg,#2d1b6e 0%,#4b2ca3 100%);
+  color: white; padding: 20px 20px 32px;
+  text-align: center;
+}
+.logo { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .8; margin-bottom: 8px; }
+.header h1 { font-size: 22px; font-weight: 800; line-height: 1.2; }
+.header p  { font-size: 13px; opacity: .8; margin-top: 6px; }
+
+/* STEP INDICATOR */
+.steps {
+  display: flex; gap: 0; background: white; border-bottom: 1px solid var(--border);
+  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.steps::-webkit-scrollbar { display: none; }
+.step-btn {
+  flex: 1; min-width: 80px; padding: 12px 8px; text-align: center;
+  font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer;
+  border: none; background: none; border-bottom: 3px solid transparent;
+  transition: all .2s; white-space: nowrap;
+}
+.step-btn.ativo { color: var(--purple); border-bottom-color: var(--purple); }
+.step-btn.feito { color: var(--green); }
+.step-num { display: block; font-size: 18px; margin-bottom: 2px; }
+
+/* CONTENT */
+.container { max-width: 600px; margin: 0 auto; padding: 20px 16px 100px; }
+
+/* SECTIONS */
+.section { display: none; }
+.section.ativa { display: block; }
+
+/* CARD */
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+.card-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: var(--purple); display: flex; align-items: center; gap: 8px; }
+
+/* FIELD */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
+.field input, .field select, .field textarea {
+  width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; font-size: 15px; font-family: inherit;
+  background: var(--bg); color: var(--text);
+  transition: border-color .2s, box-shadow .2s; appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(75,44,163,.12);
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* UPLOAD / CAMERA */
+.upload-box {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 20px 16px; text-align: center; cursor: pointer;
+  transition: all .2s; background: var(--bg); position: relative;
+}
+.upload-box:hover, .upload-box.tem-arquivo { border-color: var(--purple); background: #f5f2ff; }
+.upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-icon { font-size: 36px; margin-bottom: 8px; }
+.upload-label { font-size: 13px; font-weight: 600; color: var(--purple); }
+.upload-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.upload-preview { max-width: 100%; max-height: 200px; border-radius: 10px; margin-top: 12px; display: none; }
+.upload-filename { font-size: 12px; color: var(--green); margin-top: 8px; font-weight: 600; display: none; }
+
+/* DEPENDENTE CARD */
+.dep-card { background: #f8f7ff; border: 1.5px solid #d4c8f8; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.dep-titulo { font-size: 13px; font-weight: 700; color: var(--purple2); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.btn-rem { background: none; border: none; color: var(--red); font-size: 18px; cursor: pointer; padding: 0 4px; }
+
+/* BUTTONS */
+.btn-add-dep {
+  width: 100%; padding: 12px; border: 2px dashed var(--purple); border-radius: var(--radius);
+  background: none; color: var(--purple); font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: background .2s; margin-bottom: 16px;
+}
+.btn-add-dep:hover { background: #f5f2ff; }
+
+/* NAV BOTTOM */
+.nav-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: white; border-top: 1px solid var(--border);
+  padding: 12px 16px; display: flex; gap: 10px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,.08);
+}
+.btn-nav {
+  flex: 1; padding: 14px; border-radius: 12px; border: none;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .2s;
+}
+.btn-prev { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
+.btn-next { background: var(--purple); color: white; }
+.btn-next:hover { opacity: .9; }
+.btn-submit { background: var(--green); color: white; }
+.btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ALERT */
+.aviso {
+  background: #fff8e1; border: 1.5px solid #fcd34d; border-radius: 10px;
+  padding: 12px 14px; font-size: 13px; color: #92400e; margin-bottom: 16px;
+}
+
+/* PROGRESS */
+.progress-bar {
+  height: 4px; background: var(--border);
+  border-radius: 2px; margin-bottom: 20px;
+}
+.progress-fill {
+  height: 100%; background: var(--purple); border-radius: 2px; transition: width .3s;
+}
+
+/* LOADING overlay */
+.loading-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(255,255,255,.9);
+  z-index: 999; flex-direction: column; align-items: center; justify-content: center;
+}
+.loading-overlay.ativo { display: flex; }
+.spinner {
+  width: 48px; height: 48px; border: 4px solid var(--border);
+  border-top-color: var(--purple); border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-txt { margin-top: 16px; font-size: 15px; font-weight: 600; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Alliance Indústria</div>
+  <h1>Atualização Cadastral</h1>
+  <p>Olá, <strong>{{ d.nome }}</strong>! Por favor, confirme seus dados abaixo.</p>
+</div>
+
+<div class="steps" id="steps">
+  <button class="step-btn ativo" onclick="irPara(0)"><span class="step-num">👤</span>Pessoal</button>
+  <button class="step-btn" onclick="irPara(1)"><span class="step-num">🏠</span>Endereço</button>
+  <button class="step-btn" onclick="irPara(2)"><span class="step-num">📸</span>Fotos</button>
+  <button class="step-btn" onclick="irPara(3)"><span class="step-num">👶</span>Dependentes</button>
+  <button class="step-btn" onclick="irPara(4)"><span class="step-num">✅</span>Revisar</button>
+</div>
+
+<div class="container">
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:20%"></div></div>
+
+  <!-- SEÇÃO 0: DADOS PESSOAIS -->
+  <div class="section ativa" id="sec0">
+    <div class="card">
+      <div class="card-title">👤 Dados Pessoais</div>
+      <div class="aviso">⚠️ Verifique se os dados estão corretos e atualize se necessário.</div>
+      <div class="field">
+        <label>Nome Completo *</label>
+        <input type="text" name="nome" id="nome" value="{{ d.nome }}" required autocomplete="name">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>CPF *</label>
+          <input type="text" name="cpf" id="cpf" value="{{ d.cpf }}" inputmode="numeric" required>
+        </div>
+        <div class="field">
+          <label>RG</label>
+          <input type="text" name="rg" id="rg" value="{{ d.rg }}">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>WhatsApp / Celular *</label>
+          <input type="tel" name="telefone" id="telefone" value="{{ d.telefone }}" inputmode="tel" required>
+        </div>
+        <div class="field">
+          <label>Estado Civil *</label>
+          <select name="estado_civil" id="estado_civil" required>
+            <option value="">Selecione</option>
+            {% for v,l in [('S','Solteiro(a)'),('C','Casado(a)'),('D','Divorciado(a)'),('V','Viúvo(a)'),('U','União Estável')] %}
+            <option value="{{ v }}" {% if d.estado_civil==v %}selected{% endif %}>{{ l }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" name="email" id="email" value="{{ d.email }}" autocomplete="email">
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 1: ENDEREÇO -->
+  <div class="section" id="sec1">
+    <div class="card">
+      <div class="card-title">🏠 Endereço Residencial</div>
+      <div class="row2">
+        <div class="field">
+          <label>CEP *</label>
+          <input type="text" name="cep" id="cep" value="{{ d.cep }}" inputmode="numeric" required maxlength="9" oninput="buscarCep(this)">
+        </div>
+        <div class="field">
+          <label>Estado *</label>
+          <select name="estado" id="estado" required>
+            <option value="">UF</option>
+            {% for uf in ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] %}
+            <option value="{{ uf }}" {% if d.estado==uf %}selected{% endif %}>{{ uf }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Rua / Logradouro *</label>
+        <input type="text" name="endereco" id="endereco" value="{{ d.endereco }}" required autocomplete="street-address">
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label>Número *</label>
+          <input type="text" name="numero" id="numero" value="{{ d.numero }}" required>
+        </div>
+        <div class="field">
+          <label>Compl.</label>
+          <input type="text" name="complemento" id="complemento" value="{{ d.complemento }}">
+        </div>
+        <div class="field">
+          <label>Bairro *</label>
+          <input type="text" name="bairro" id="bairro" value="{{ d.bairro }}" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>Cidade *</label>
+        <input type="text" name="cidade" id="cidade" value="{{ d.cidade }}" required>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 2: FOTOS / DOCUMENTOS -->
+  <div class="section" id="sec2">
+    <div class="card">
+      <div class="card-title">📸 Foto Biométrica</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Tire uma selfie com boa iluminação, fundo claro, rosto centralizado.</p>
+      <div class="upload-box" onclick="document.getElementById('foto_rosto').click()">
+        <input type="file" id="foto_rosto" name="foto_rosto" accept="image/*" capture="user" onchange="previewArquivo(this,'prev_rosto','fn_rosto')">
+        <div class="upload-icon">🤳</div>
+        <div class="upload-label">Tirar Selfie</div>
+        <div class="upload-sub">Toca aqui para abrir a câmera frontal</div>
+        <img id="prev_rosto" class="upload-preview">
+        <div id="fn_rosto" class="upload-filename"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📄 Comprovante de Endereço</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Conta de luz, água ou telefone fixo dos últimos 3 meses.</p>
+      <div class="upload-box" onclick="document.getElementById('comprovante_endereco').click()">
+        <input type="file" id="comprovante_endereco" name="comprovante_endereco" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_comp','fn_comp')">
+        <div class="upload-icon">🏠</div>
+        <div class="upload-label">Fotografar Comprovante</div>
+        <div class="upload-sub">Toca aqui para fotografar ou escolher PDF</div>
+        <img id="prev_comp" class="upload-preview">
+        <div id="fn_comp" class="upload-filename"></div>
+      </div>
+    </div>
+
+    <div class="card" id="card_cert_casamento" style="display:none">
+      <div class="card-title">💍 Certidão de Casamento / Divórcio</div>
+      <div class="upload-box" onclick="document.getElementById('cert_casamento').click()">
+        <input type="file" id="cert_casamento" name="cert_casamento" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_cas','fn_cas')">
+        <div class="upload-icon">📋</div>
+        <div class="upload-label">Fotografar Certidão</div>
+        <div class="upload-sub">Toca aqui para fotografar</div>
+        <img id="prev_cas" class="upload-preview">
+        <div id="fn_cas" class="upload-filename"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 3: DEPENDENTES -->
+  <div class="section" id="sec3">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">👶 Dependentes</div>
+      <p style="font-size:13px;color:var(--muted)">Informe apenas filhos até 21 anos (ou inválidos de qualquer idade). Se não tiver dependentes, clique em Próximo.</p>
+    </div>
+
+    <div id="deps-container"></div>
+
+    <button class="btn-add-dep" type="button" onclick="addDep()">+ Adicionar Dependente</button>
+  </div>
+
+  <!-- SEÇÃO 4: REVISÃO -->
+  <div class="section" id="sec4">
+    <div class="card">
+      <div class="card-title">✅ Revisar e Enviar</div>
+      <div id="resumo" style="font-size:14px;line-height:1.8"></div>
+    </div>
+    <div class="aviso">
+      Ao clicar em <strong>Enviar</strong>, seus dados serão salvos e esta atualização será registrada no RH.
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- NAV BOTTOM -->
+<div class="nav-bottom">
+  <button class="btn-nav btn-prev" id="btn-prev" onclick="anterior()" style="display:none">← Anterior</button>
+  <button class="btn-nav btn-next" id="btn-next" onclick="proximo()">Próximo →</button>
+  <button class="btn-nav btn-submit" id="btn-submit" style="display:none" onclick="enviar()">Enviar ✓</button>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-txt">Enviando seus dados…</div>
+</div>
+
+<script>
+let step = 0;
+const TOTAL = 5;
+let depIdx = 0;
+let deps = [];
+
+// Pré-preencher dependentes do Protheus
+const depsIniciais = {{ d.dependentes | tojson }};
+depsIniciais.forEach(dep => addDep(dep));
+
+function irPara(n) {
+  if (n > step && !validarStep()) return;
+  step = n;
+  renderStep();
+}
+
+function proximo() {
+  if (!validarStep()) return;
+  if (step < TOTAL - 1) { step++; renderStep(); }
+}
+
+function anterior() {
+  if (step > 0) { step--; renderStep(); }
+}
+
+function renderStep() {
+  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('ativa', i===step));
+  document.querySelectorAll('.step-btn').forEach((b,i) => {
+    b.classList.toggle('ativo', i===step);
+    b.classList.toggle('feito', i<step);
+  });
+  document.getElementById('progress').style.width = ((step+1)/TOTAL*100)+'%';
+  document.getElementById('btn-prev').style.display = step===0 ? 'none':'block';
+  document.getElementById('btn-next').style.display = step===TOTAL-1 ? 'none':'block';
+  document.getElementById('btn-submit').style.display = step===TOTAL-1 ? 'block':'none';
+  if (step === TOTAL-1) renderResumo();
+
+  // Scroll to top
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function validarStep() {
+  const sec = document.getElementById('sec' + step);
+  const campos = sec.querySelectorAll('[required]');
+  let ok = true;
+  campos.forEach(c => {
+    if (!c.value.trim()) {
+      c.style.borderColor = 'var(--red)';
+      c.focus();
+      ok = false;
+    } else {
+      c.style.borderColor = '';
+    }
+  });
+  if (!ok) { alert('Preencha os campos obrigatórios antes de continuar.'); }
+  return ok;
+}
+
+function previewArquivo(input, prevId, fnId) {
+  const file = input.files[0];
+  if (!file) return;
+  const box = input.closest('.upload-box');
+  box.classList.add('tem-arquivo');
+  document.getElementById(fnId).textContent = '✓ ' + file.name;
+  document.getElementById(fnId).style.display = 'block';
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById(prevId);
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// Mostrar/ocultar certidão de casamento conforme estado civil
+document.getElementById('estado_civil').addEventListener('change', function() {
+  const card = document.getElementById('card_cert_casamento');
+  card.style.display = ['C','D','U'].includes(this.value) ? 'block' : 'none';
+});
+
+// Busca CEP via ViaCEP
+function buscarCep(input) {
+  let cep = input.value.replace(/\D/g,'');
+  if (cep.length === 8) {
+    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+      .then(r=>r.json())
+      .then(d=>{
+        if (!d.erro) {
+          document.getElementById('endereco').value = d.logradouro||'';
+          document.getElementById('bairro').value = d.bairro||'';
+          document.getElementById('cidade').value = d.localidade||'';
+          document.getElementById('estado').value = d.uf||'';
+        }
+      }).catch(()=>{});
+  }
+}
+
+// Dependentes
+function addDep(data) {
+  const i = depIdx++;
+  const div = document.createElement('div');
+  div.className = 'dep-card';
+  div.id = 'dep-'+i;
+  div.innerHTML = `
+    <div class="dep-titulo">
+      <span>Dependente ${i+1}</span>
+      <button class="btn-rem" type="button" onclick="remDep(${i})">✕</button>
+    </div>
+    <div class="field">
+      <label>Nome Completo *</label>
+      <input type="text" id="dn${i}" value="${(data&&data.nome)||''}" placeholder="Nome">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Data de Nascimento *</label>
+        <input type="date" id="dnasc${i}" value="${(data&&data.dt_nasc)||''}">
+      </div>
+      <div class="field">
+        <label>Parentesco</label>
+        <select id="dpar${i}">
+          <option value="filho">Filho(a)</option>
+          <option value="conjugue" ${(data&&data.parentesco)==='conjugue'?'selected':''}>Cônjuge</option>
+          <option value="outro" ${(data&&data.parentesco)==='outro'?'selected':''}>Outro</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>CPF</label>
+        <input type="text" id="dcpf${i}" value="${(data&&data.cpf)||''}" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>RG</label>
+        <input type="text" id="drg${i}" value="${(data&&data.rg)||''}">
+      </div>
+    </div>
+    <div class="field">
+      <label>Cidade de Nascimento</label>
+      <input type="text" id="dcid${i}" value="${(data&&data.cidade_nasc)||''}">
+    </div>
+    <div class="field">
+      <label>Certidão de Nascimento</label>
+      <div class="upload-box" onclick="document.getElementById('cert_nasc_${i}').click()">
+        <input type="file" id="cert_nasc_${i}" name="cert_nasc_${i}" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_dep${i}','fn_dep${i}')">
+        <div class="upload-icon">📋</div>
+        <div class="upload-label">Fotografar Certidão</div>
+        <div class="upload-sub">Toca aqui</div>
+        <img id="prev_dep${i}" class="upload-preview">
+        <div id="fn_dep${i}" class="upload-filename"></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('deps-container').appendChild(div);
+}
+
+function remDep(i) {
+  const el = document.getElementById('dep-'+i);
+  if (el) el.remove();
+}
+
+function getDepsData() {
+  const result = [];
+  document.querySelectorAll('.dep-card').forEach(card => {
+    const i = card.id.replace('dep-','');
+    result.push({
+      nome:       document.getElementById('dn'+i)?.value||'',
+      dt_nasc:    document.getElementById('dnasc'+i)?.value||'',
+      parentesco: document.getElementById('dpar'+i)?.value||'',
+      cpf:        document.getElementById('dcpf'+i)?.value||'',
+      rg:         document.getElementById('drg'+i)?.value||'',
+      cidade_nasc:document.getElementById('dcid'+i)?.value||'',
+    });
+  });
+  return result.filter(d => d.nome.trim());
+}
+
+function renderResumo() {
+  const estadoCivilMap = {S:'Solteiro(a)',C:'Casado(a)',D:'Divorciado(a)',V:'Viúvo(a)',U:'União Estável'};
+  const ec = document.getElementById('estado_civil').value;
+  const deps = getDepsData();
+  let html = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <tr><td style="padding:6px 0;color:var(--muted);width:40%">Nome</td><td><strong>${document.getElementById('nome').value}</strong></td></tr>
+    <tr><td style="padding:6px 0;color:var(--muted)">CPF</td><td>${document.getElementById('cpf').value}</td></tr>
+    <tr><td style="padding:6px 0;color:var(--muted)">RG</td><td>${document.getElementById('rg').value||'—'}</td></tr>
+    <tr><td style="padding:6px 0;color:var(--muted)">Celular</td><td>${document.getElementById('telefone').value}</td></tr>
+    <tr><td style="padding:6px 0;color:var(--muted)">E-mail</td><td>${document.getElementById('email').value||'—'}</td></tr>
+    <tr><td style="padding:6px 0;color:var(--muted)">Estado Civil</td><td>${estadoCivilMap[ec]||ec}</td></tr>
+    <tr><td style="padding:6px 0;color:var(--muted)">Endereço</td><td>${document.getElementById('endereco').value}, ${document.getElementById('numero').value} — ${document.getElementById('bairro').value}, ${document.getElementById('cidade').value}/${document.getElementById('estado').value}</td></tr>
+    <tr><td style="padding:6px 0;color:var(--muted)">Dependentes</td><td>${deps.length ? deps.map(d=>d.nome).join(', ') : 'Nenhum'}</td></tr>
+    </table>
+  `;
+  document.getElementById('resumo').innerHTML = html;
+}
+
+async function enviar() {
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  document.getElementById('loading').classList.add('ativo');
+
+  const form = new FormData();
+  form.append('nome',          document.getElementById('nome').value);
+  form.append('cpf',           document.getElementById('cpf').value);
+  form.append('rg',            document.getElementById('rg').value);
+  form.append('telefone',      document.getElementById('telefone').value);
+  form.append('email',         document.getElementById('email').value);
+  form.append('estado_civil',  document.getElementById('estado_civil').value);
+  form.append('cep',           document.getElementById('cep').value);
+  form.append('endereco',      document.getElementById('endereco').value);
+  form.append('numero',        document.getElementById('numero').value);
+  form.append('complemento',   document.getElementById('complemento').value);
+  form.append('bairro',        document.getElementById('bairro').value);
+  form.append('cidade',        document.getElementById('cidade').value);
+  form.append('estado',        document.getElementById('estado').value);
+  form.append('dependentes_json', JSON.stringify(getDepsData()));
+
+  // Arquivos
+  ['foto_rosto','comprovante_endereco','cert_casamento'].forEach(id => {
+    const inp = document.getElementById(id);
+    if (inp && inp.files[0]) form.append(id, inp.files[0]);
+  });
+  for (let i=0;i<10;i++) {
+    const inp = document.getElementById('cert_nasc_'+i);
+    if (inp && inp.files[0]) form.append('cert_nasc_'+i, inp.files[0]);
+  }
+
+  try {
+    const resp = await fetch(window.location.pathname, {method:'POST', body: form});
+    if (resp.redirected) { window.location.href = resp.url; return; }
+    if (resp.ok) { window.location.href = '/obrigado'; }
+    else { throw new Error('Erro '+resp.status); }
+  } catch(e) {
+    document.getElementById('loading').classList.remove('ativo');
+    btn.disabled = false;
+    alert('Erro ao enviar. Verifique sua conexão e tente novamente.\n'+e.message);
+  }
+}
+</script>
+</body>
+</html>
