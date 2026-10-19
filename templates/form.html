@@ -227,7 +227,7 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       <div class="row2">
         <div class="field">
           <label>CPF *</label>
-          <input type="text" name="cpf" id="cpf" value="{{ d.cpf }}" inputmode="numeric" required>
+          <input type="text" name="cpf" id="cpf" value="{{ d.cpf }}" inputmode="numeric" required oninput="fmtCPF(this)" placeholder="000.000.000-00">
         </div>
         <div class="field">
           <label>RG *</label>
@@ -440,7 +440,7 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       <div class="row2">
         <div class="field">
           <label>CPF *</label>
-          <input type="text" id="conjuge_cpf" name="conjuge_cpf" inputmode="numeric" placeholder="000.000.000-00">
+          <input type="text" id="conjuge_cpf" name="conjuge_cpf" inputmode="numeric" placeholder="000.000.000-00" oninput="fmtCPF(this)">
         </div>
         <div class="field">
           <label>RG</label>
@@ -631,6 +631,21 @@ function validarStep() {
   const sec = document.getElementById('sec' + step);
   let ok = true;
 
+  // Valida todos os CPFs visíveis na seção atual
+  sec.querySelectorAll('input[oninput*="fmtCPF"]').forEach(inp => {
+    if (!inp.offsetParent) return; // campo oculto
+    const raw = inp.value.replace(/\D/g, '');
+    if (raw.length > 0 && !validarCPF(raw)) {
+      ok = false;
+      inp.style.borderColor = '#dc2626';
+      if (!sec.querySelector('.cpf-alerta-bloco')) {
+        // já mostra o erro inline via validarCPFInput
+        validarCPFInput(inp);
+      }
+    }
+  });
+  if (!ok) { alert('⚠️ Há CPF(s) inválido(s) nesta seção. Corrija antes de continuar.'); return false; }
+
   // Campos de texto obrigatórios
   sec.querySelectorAll('[required]').forEach(c => {
     if (c.type === 'file') return; // tratado abaixo
@@ -813,6 +828,50 @@ function fixTelefone() {
 let _selfieBlob = null;
 let _selfieNome = '';
 
+function fmtCPF(input) {
+  let v = input.value.replace(/\D/g, '').slice(0, 11);
+  if (v.length > 9)      v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+  else if (v.length > 6) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+  else if (v.length > 3) v = v.slice(0,3)+'.'+v.slice(3);
+  input.value = v;
+  validarCPFInput(input);
+}
+
+function validarCPF(cpf) {
+  const n = cpf.replace(/\D/g, '');
+  if (n.length !== 11 || /^(\d)\1{10}$/.test(n)) return false;
+  let s = 0;
+  for (let i = 0; i < 9; i++) s += parseInt(n[i]) * (10 - i);
+  let r = (s * 10) % 11; if (r >= 10) r = 0;
+  if (r !== parseInt(n[9])) return false;
+  s = 0;
+  for (let i = 0; i < 10; i++) s += parseInt(n[i]) * (11 - i);
+  r = (s * 10) % 11; if (r >= 10) r = 0;
+  return r === parseInt(n[10]);
+}
+
+function validarCPFInput(input) {
+  const raw = input.value.replace(/\D/g, '');
+  let msg = input.parentElement.querySelector('.cpf-erro');
+  if (!msg) {
+    msg = document.createElement('span');
+    msg.className = 'cpf-erro';
+    msg.style.cssText = 'color:#dc2626;font-size:11px;display:block;margin-top:3px';
+    input.parentElement.appendChild(msg);
+  }
+  if (raw.length === 0) { msg.textContent = ''; input.style.borderColor = ''; return true; }
+  if (raw.length < 11)  { msg.textContent = ''; input.style.borderColor = ''; return true; }
+  if (!validarCPF(raw)) {
+    msg.textContent = '⚠ CPF inválido';
+    input.style.borderColor = '#dc2626';
+    return false;
+  }
+  msg.textContent = '✓ CPF válido';
+  msg.style.color = '#16a34a';
+  input.style.borderColor = '#16a34a';
+  return true;
+}
+
 function previewSelfie(input, prevId, fnId) {
   const box = input.closest('.upload-box');
   if (box) box.classList.add('tem-arquivo');
@@ -919,7 +978,7 @@ function addDep(data) {
     <div class="row2">
       <div class="field">
         <label>CPF *</label>
-        <input type="text" id="dcpf${i}" value="${(data&&data.cpf)||''}" inputmode="numeric" placeholder="000.000.000-00">
+        <input type="text" id="dcpf${i}" value="${(data&&data.cpf)||''}" inputmode="numeric" placeholder="000.000.000-00" oninput="fmtCPF(this)">
       </div>
       <div class="field">
         <label>RG</label>
