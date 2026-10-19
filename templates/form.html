@@ -802,6 +802,10 @@ function fixTelefone() {
   if (/^\d{2}\)/.test(v)) inp.value = '(' + v;
 }
 
+// Blob da selfie desespelhada (iOS não suporta substituir input.files via DataTransfer)
+let _selfieBlob = null;
+let _selfieNome = '';
+
 function previewSelfie(input, prevId, fnId) {
   const box = input.closest('.upload-box');
   if (box) box.classList.add('tem-arquivo');
@@ -809,11 +813,12 @@ function previewSelfie(input, prevId, fnId) {
   if (!file) return;
   document.getElementById(fnId).textContent = '✓ ' + file.name;
   document.getElementById(fnId).style.display = 'block';
+  _selfieBlob = null;
+  _selfieNome = file.name;
   const reader = new FileReader();
   reader.onload = e => {
     const image = new Image();
     image.onload = () => {
-      // Desespelha horizontalmente via canvas
       const canvas = document.createElement('canvas');
       canvas.width  = image.width;
       canvas.height = image.height;
@@ -821,17 +826,12 @@ function previewSelfie(input, prevId, fnId) {
       ctx.translate(image.width, 0);
       ctx.scale(-1, 1);
       ctx.drawImage(image, 0, 0);
-      // Atualiza preview
+      // Atualiza preview com versão desespelhada
       const preview = document.getElementById(prevId);
       preview.src = canvas.toDataURL('image/jpeg', 0.92);
       preview.style.display = 'block';
-      // Substitui o arquivo no input pelo blob desespelhado
-      canvas.toBlob(blob => {
-        const flipped = new File([blob], file.name, { type: 'image/jpeg' });
-        const dt = new DataTransfer();
-        dt.items.add(flipped);
-        input.files = dt.files;
-      }, 'image/jpeg', 0.92);
+      // Guarda o blob para usar no envio (iOS não permite substituir input.files)
+      canvas.toBlob(blob => { _selfieBlob = blob; }, 'image/jpeg', 0.92);
     };
     image.src = e.target.result;
   };
@@ -1140,8 +1140,16 @@ async function enviar() {
   form.append('cursos_json',              JSON.stringify(getCursosData()));
   form.append('dependentes_json',         JSON.stringify(getDepsData()));
 
-  // Arquivos
-  ['foto_rosto','comprovante_endereco','cert_casamento','cert_obito',
+  // Selfie: usa blob desespelhado se disponível (canvas flip), senão o arquivo original
+  if (_selfieBlob) {
+    form.append('foto_rosto', _selfieBlob, _selfieNome || 'selfie.jpg');
+  } else {
+    const inp = document.getElementById('foto_rosto');
+    if (inp && inp.files[0]) form.append('foto_rosto', inp.files[0]);
+  }
+
+  // Demais arquivos
+  ['comprovante_endereco','cert_casamento','cert_obito',
    'doc_cpf','doc_rg_frente','doc_rg_verso','doc_cert_nasc_func'].forEach(id => {
     const inp = document.getElementById(id);
     if (inp && inp.files[0]) form.append(id, inp.files[0]);
