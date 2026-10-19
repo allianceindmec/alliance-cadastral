@@ -151,6 +151,38 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 </head>
 <body>
 
+<!-- TELA INICIAL -->
+<div id="intro-overlay" style="
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(160deg,#2d1b6e 0%,#4b2ca3 60%,#6d43c8 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px;text-align:center;color:white;
+">
+  <div style="font-size:52px;margin-bottom:16px">📋</div>
+  <div style="font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;opacity:.7;margin-bottom:8px">Alliance Indústria</div>
+  <h1 style="font-size:24px;font-weight:800;line-height:1.3;margin-bottom:16px">Atualização<br>Cadastral 2025</h1>
+  <p style="font-size:14px;line-height:1.7;opacity:.9;max-width:340px;margin-bottom:20px">
+    Olá, <strong>{{ d.nome.split()[0] }}</strong>! O RH precisa atualizar seus dados para atender às novas obrigações do <strong>eSocial</strong> e manter seu histórico profissional completo.
+  </p>
+  <div style="background:rgba(255,255,255,.12);border-radius:14px;padding:16px 20px;max-width:340px;margin-bottom:28px;text-align:left">
+    <p style="font-size:13px;font-weight:700;margin-bottom:10px">📌 O que você vai preencher:</p>
+    <p style="font-size:13px;line-height:1.8;opacity:.9">
+      ✅ Dados pessoais e contato de emergência<br>
+      ✅ Endereço residencial atualizado<br>
+      ✅ Fotos e documentos<br>
+      ✅ Escolaridade e formações<br>
+      ✅ Dependentes (se houver)
+    </p>
+  </div>
+  <p style="font-size:12px;opacity:.6;margin-bottom:24px">Leva aproximadamente 5 minutos. Tenha seus documentos em mãos.</p>
+  <button onclick="document.getElementById('intro-overlay').style.display='none'"
+    style="background:white;color:var(--purple);border:none;border-radius:14px;
+           padding:16px 40px;font-size:16px;font-weight:800;cursor:pointer;
+           box-shadow:0 4px 20px rgba(0,0,0,.2)">
+    Vamos começar →
+  </button>
+</div>
+
 <div class="header">
   <div class="logo">Alliance Indústria</div>
   <h1>Atualização Cadastral</h1>
@@ -161,8 +193,9 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
   <button class="step-btn ativo" onclick="irPara(0)"><span class="step-num">👤</span>Pessoal</button>
   <button class="step-btn" onclick="irPara(1)"><span class="step-num">🏠</span>Endereço</button>
   <button class="step-btn" onclick="irPara(2)"><span class="step-num">📸</span>Fotos</button>
-  <button class="step-btn" onclick="irPara(3)"><span class="step-num">👶</span>Dependentes</button>
-  <button class="step-btn" onclick="irPara(4)"><span class="step-num">✅</span>Revisar</button>
+  <button class="step-btn" onclick="irPara(3)"><span class="step-num">🎓</span>Escolaridade</button>
+  <button class="step-btn" onclick="irPara(4)"><span class="step-num">👶</span>Dependentes</button>
+  <button class="step-btn" onclick="irPara(5)"><span class="step-num">✅</span>Revisar</button>
 </div>
 
 <div class="container">
@@ -205,6 +238,31 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       <div class="field">
         <label>E-mail *</label>
         <input type="email" name="email" id="email" value="{{ d.email }}" autocomplete="email" required>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🚨 Contato de Emergência</div>
+      <div class="field">
+        <label>Nome do Contato *</label>
+        <input type="text" name="contato_emerg_nome" id="contato_emerg_nome" placeholder="Nome completo" required>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Telefone *</label>
+          <input type="tel" name="contato_emerg_tel" id="contato_emerg_tel" placeholder="(00) 00000-0000" inputmode="tel" required>
+        </div>
+        <div class="field">
+          <label>Parentesco / Relação *</label>
+          <select name="contato_emerg_parentesco" id="contato_emerg_parentesco" required>
+            <option value="">Selecione</option>
+            <option value="conjuge">Cônjuge/Companheiro(a)</option>
+            <option value="pai_mae">Pai / Mãe</option>
+            <option value="filho">Filho(a)</option>
+            <option value="irmao">Irmão / Irmã</option>
+            <option value="amigo">Amigo(a)</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -300,8 +358,35 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     </div>
   </div>
 
-  <!-- SEÇÃO 3: DEPENDENTES -->
+  <!-- SEÇÃO 3: ESCOLARIDADE -->
   <div class="section" id="sec3">
+    <div class="card">
+      <div class="card-title">🎓 Escolaridade</div>
+      <div class="field">
+        <label>Grau de Escolaridade *</label>
+        <select name="grau_escolaridade" id="grau_escolaridade" required>
+          <option value="">Selecione</option>
+          <option value="fund_inc">Fundamental Incompleto</option>
+          <option value="fund_comp">Fundamental Completo</option>
+          <option value="medio_inc">Médio Incompleto</option>
+          <option value="medio_comp">Médio Completo</option>
+          <option value="sup_inc">Superior Incompleto</option>
+          <option value="sup_comp">Superior Completo</option>
+          <option value="posgrad">Pós-Graduação / MBA</option>
+          <option value="mestrado">Mestrado</option>
+          <option value="doutorado">Doutorado</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="cursos-container"></div>
+
+    <button class="btn-add-dep" type="button" onclick="addCurso()">+ Adicionar Curso / Formação</button>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center">Curso técnico, faculdade, pós, idiomas, etc. Se não tiver, clique em Próximo.</p>
+  </div>
+
+  <!-- SEÇÃO 4: DEPENDENTES -->
+  <div class="section" id="sec4">
     <div class="card" style="margin-bottom:12px">
       <div class="card-title">👶 Dependentes</div>
       <p style="font-size:13px;color:var(--muted)">Informe apenas filhos até 21 anos (ou inválidos de qualquer idade). Se não tiver dependentes, clique em Próximo.</p>
@@ -312,8 +397,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     <button class="btn-add-dep" type="button" onclick="addDep()">+ Adicionar Dependente</button>
   </div>
 
-  <!-- SEÇÃO 4: REVISÃO -->
-  <div class="section" id="sec4">
+  <!-- SEÇÃO 5: REVISÃO -->
+  <div class="section" id="sec5">
     <div class="card">
       <div class="card-title">✅ Revisar e Enviar</div>
       <div id="resumo" style="font-size:14px;line-height:1.8"></div>
@@ -340,8 +425,9 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 
 <script>
 let step = 0;
-const TOTAL = 5;
+const TOTAL = 6;
 let depIdx = 0;
+let cursoIdx = 0;
 let deps = [];
 
 // Pré-preencher dependentes do Protheus
@@ -374,8 +460,6 @@ function renderStep() {
   document.getElementById('btn-next').style.display = step===TOTAL-1 ? 'none':'block';
   document.getElementById('btn-submit').style.display = step===TOTAL-1 ? 'block':'none';
   if (step === TOTAL-1) renderResumo();
-
-  // Scroll to top
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -424,6 +508,20 @@ function validarStep() {
 
   if (!ok) { alert('Preencha todos os campos obrigatórios antes de continuar.'); }
   return ok;
+}
+
+function fmtDepData(s) {
+  if (!s) return '';
+  s = s.replace(/\D/g,'');
+  if (s.length === 8) return s.slice(6,8)+'/'+s.slice(4,6)+'/'+s.slice(0,4);
+  return s;
+}
+
+function fixTelefone() {
+  const inp = document.getElementById('telefone');
+  let v = (inp.value||'').trim();
+  // Protheus às vezes grava sem o "(" inicial, ex: "14) 99667-2702"
+  if (/^\d{2}\)/.test(v)) inp.value = '(' + v;
 }
 
 function previewArquivo(input, prevId, fnId) {
@@ -485,7 +583,7 @@ function addDep(data) {
     <div class="row2">
       <div class="field">
         <label>Data de Nascimento *</label>
-        <input type="date" id="dnasc${i}" value="${(data&&data.dt_nasc)||''}">
+        <input type="text" id="dnasc${i}" value="${fmtDepData((data&&data.dt_nasc)||'')}" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10">
       </div>
       <div class="field">
         <label>Parentesco</label>
@@ -543,6 +641,91 @@ function toggleRg(i) {
   else { inp.disabled = false; }
 }
 
+function addCurso(data) {
+  const i = cursoIdx++;
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.id = 'curso-'+i;
+  div.style.marginBottom = '12px';
+  div.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-size:14px;font-weight:700;color:var(--purple)">📚 Formação ${i+1}</span>
+      <button class="btn-rem" type="button" onclick="remCurso(${i})">✕</button>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Tipo *</label>
+        <select id="ctipo${i}" required>
+          <option value="">Tipo</option>
+          <option value="tecnico" ${(data&&data.tipo)==='tecnico'?'selected':''}>Técnico</option>
+          <option value="superior" ${(data&&data.tipo)==='superior'?'selected':''}>Superior / Faculdade</option>
+          <option value="posgrad" ${(data&&data.tipo)==='posgrad'?'selected':''}>Pós-Graduação / MBA</option>
+          <option value="idioma" ${(data&&data.tipo)==='idioma'?'selected':''}>Idioma</option>
+          <option value="livre" ${(data&&data.tipo)==='livre'?'selected':''}>Curso Livre / Complementar</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Ano de Conclusão</label>
+        <input type="text" id="cano${i}" value="${(data&&data.ano)||''}" placeholder="Ex: 2020 (deixe vazio se em andamento)" inputmode="numeric" maxlength="4">
+      </div>
+    </div>
+    <div class="field">
+      <label>Nome do Curso *</label>
+      <input type="text" id="ccurso${i}" value="${(data&&data.curso)||''}" placeholder="Ex: Técnico em Eletrotécnica" required>
+    </div>
+    <div class="field">
+      <label>Instituição *</label>
+      <input type="text" id="cinst${i}" value="${(data&&data.instituicao)||''}" placeholder="Ex: SENAI, USP, UNESP..." required>
+    </div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="cand${i}" onchange="toggleAndamento(${i})" ${(data&&data.em_andamento)?'checked':''}>
+        <span>Em andamento (não concluído)</span>
+      </label>
+    </div>
+    <div class="field">
+      <label>Certificado / Diploma (foto ou PDF)</label>
+      <div class="upload-box" id="box_cert_curso_${i}">
+        <input type="file" id="cert_curso_${i}" name="cert_curso_${i}" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_curso${i}','fn_curso${i}')">
+        <label for="cert_curso_${i}" class="upload-trigger">
+          <div class="upload-icon">📜</div>
+          <div class="upload-label">Fotografar Certificado</div>
+          <div class="upload-sub">Opcional — toca aqui</div>
+        </label>
+        <img id="prev_curso${i}" class="upload-preview">
+        <div id="fn_curso${i}" class="upload-filename"></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('cursos-container').appendChild(div);
+}
+
+function remCurso(i) {
+  const el = document.getElementById('curso-'+i);
+  if (el) el.remove();
+}
+
+function toggleAndamento(i) {
+  const cb = document.getElementById('cand'+i);
+  const inp = document.getElementById('cano'+i);
+  if (cb.checked) { inp.value = ''; inp.disabled = true; inp.placeholder = 'Em andamento'; }
+  else { inp.disabled = false; inp.placeholder = 'Ex: 2020'; }
+}
+
+function getCursosData() {
+  const result = [];
+  document.querySelectorAll('[id^="curso-"]').forEach(card => {
+    const i = card.id.replace('curso-','');
+    const tipo = document.getElementById('ctipo'+i)?.value||'';
+    const curso = document.getElementById('ccurso'+i)?.value||'';
+    const inst = document.getElementById('cinst'+i)?.value||'';
+    const ano = document.getElementById('cano'+i)?.value||'';
+    const em_andamento = document.getElementById('cand'+i)?.checked||false;
+    if (tipo || curso) result.push({ tipo, curso, instituicao: inst, ano, em_andamento });
+  });
+  return result;
+}
+
 function getDepsData() {
   const result = [];
   document.querySelectorAll('.dep-card').forEach(card => {
@@ -598,7 +781,12 @@ async function enviar() {
   form.append('bairro',        document.getElementById('bairro').value);
   form.append('cidade',        document.getElementById('cidade').value);
   form.append('estado',        document.getElementById('estado').value);
-  form.append('dependentes_json', JSON.stringify(getDepsData()));
+  form.append('contato_emerg_nome',       document.getElementById('contato_emerg_nome').value);
+  form.append('contato_emerg_tel',        document.getElementById('contato_emerg_tel').value);
+  form.append('contato_emerg_parentesco', document.getElementById('contato_emerg_parentesco').value);
+  form.append('grau_escolaridade',        document.getElementById('grau_escolaridade').value);
+  form.append('cursos_json',              JSON.stringify(getCursosData()));
+  form.append('dependentes_json',         JSON.stringify(getDepsData()));
 
   // Arquivos
   ['foto_rosto','comprovante_endereco','cert_casamento'].forEach(id => {
@@ -608,6 +796,10 @@ async function enviar() {
   for (let i=0;i<10;i++) {
     const inp = document.getElementById('cert_nasc_'+i);
     if (inp && inp.files[0]) form.append('cert_nasc_'+i, inp.files[0]);
+  }
+  for (let i=0;i<20;i++) {
+    const inp = document.getElementById('cert_curso_'+i);
+    if (inp && inp.files[0]) form.append('cert_curso_'+i, inp.files[0]);
   }
 
   try {
@@ -621,6 +813,9 @@ async function enviar() {
     alert('Erro ao enviar. Verifique sua conexão e tente novamente.\n'+e.message);
   }
 }
+
+// Executar após carregar
+fixTelefone();
 </script>
 </body>
 </html>

@@ -130,16 +130,21 @@ def formulario(token):
         "bairro":       form.get("bairro", ""),
         "cidade":       form.get("cidade", ""),
         "estado":       form.get("estado", ""),
-        "dependentes":  json.loads(form.get("dependentes_json", "[]")),
+        "contato_emergencial": {
+            "nome":       form.get("contato_emerg_nome", ""),
+            "telefone":   form.get("contato_emerg_tel", ""),
+            "parentesco": form.get("contato_emerg_parentesco", ""),
+        },
+        "grau_escolaridade": form.get("grau_escolaridade", ""),
+        "cursos":        json.loads(form.get("cursos_json", "[]")),
+        "dependentes":   json.loads(form.get("dependentes_json", "[]")),
     }
 
     CAMPOS_ARQUIVO = ["foto_rosto", "comprovante_endereco", "cert_casamento"]
     for i in range(10):
         CAMPOS_ARQUIVO.append(f"cert_nasc_{i}")
-
-    arqs_recebidos = {k: (files[k].filename, len(files[k].read()), files[k].seek(0)) for k in files}
-    print(f"[POST] arquivos recebidos: {arqs_recebidos}", flush=True)
-    print(f"[POST] content-length: {request.content_length}", flush=True)
+    for i in range(20):
+        CAMPOS_ARQUIVO.append(f"cert_curso_{i}")
 
     with get_db() as conn:
         row = conn.execute("""
