@@ -587,8 +587,11 @@ let depIdx = 0;
 let cursoIdx = 0;
 let deps = [];
 
-// Pré-preencher dependentes do Protheus
-const depsIniciais = {{ d.dependentes | tojson }};
+// Pré-preencher dependentes do Protheus (exclui cônjuge — parentesco C ou tpdep 01)
+const depsIniciais = ({{ d.dependentes | tojson }}).filter(dep => {
+  const par = (dep.parentesco || '').toString().trim().toUpperCase();
+  return par !== 'C' && par !== 'CÔNJUGE' && par !== 'CONJUGE';
+});
 depsIniciais.forEach(dep => addDep(dep));
 
 function irPara(n) {
