@@ -111,6 +111,12 @@ def formulario(token):
         "telefone":     form.get("telefone", ""),
         "email":        form.get("email", ""),
         "estado_civil": form.get("estado_civil", ""),
+        "conjuge": {
+            "nome":        form.get("conjuge_nome", ""),
+            "cpf":         form.get("conjuge_cpf", ""),
+            "dt_nasc":     form.get("conjuge_dt_nasc", ""),
+            "cidade_nasc": form.get("conjuge_cidade_nasc", ""),
+        },
         "cep":          form.get("cep", ""),
         "endereco":     form.get("endereco", ""),
         "numero":       form.get("numero", ""),

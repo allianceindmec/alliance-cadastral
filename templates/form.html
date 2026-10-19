@@ -202,9 +202,10 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
   <button class="step-btn ativo" onclick="irPara(0)"><span class="step-num">👤</span>Pessoal</button>
   <button class="step-btn" onclick="irPara(1)"><span class="step-num">🏠</span>Endereço</button>
   <button class="step-btn" onclick="irPara(2)"><span class="step-num">📸</span>Fotos</button>
-  <button class="step-btn" onclick="irPara(3)"><span class="step-num">🎓</span>Escolaridade</button>
-  <button class="step-btn" onclick="irPara(4)"><span class="step-num">👶</span>Dependentes</button>
-  <button class="step-btn" onclick="irPara(5)"><span class="step-num">✅</span>Revisar</button>
+  <button class="step-btn" onclick="irPara(3)"><span class="step-num">💍</span>Família</button>
+  <button class="step-btn" onclick="irPara(4)"><span class="step-num">🎓</span>Escolaridade</button>
+  <button class="step-btn" onclick="irPara(5)"><span class="step-num">👶</span>Filhos</button>
+  <button class="step-btn" onclick="irPara(6)"><span class="step-num">✅</span>Revisar</button>
 </div>
 
 <div class="container">
@@ -352,23 +353,74 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       </div>
     </div>
 
-    <div class="card" id="card_cert_casamento" style="display:none">
-      <div class="card-title">💍 Certidão de Casamento / Divórcio</div>
-      <div class="upload-box">
-        <input type="file" id="cert_casamento" name="cert_casamento" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_cas','fn_cas')">
-        <label for="cert_casamento" class="upload-trigger">
-          <div class="upload-icon">📋</div>
-          <div class="upload-label">Fotografar Certidão</div>
-          <div class="upload-sub">Toca aqui para fotografar</div>
-        </label>
-        <img id="prev_cas" class="upload-preview">
-        <div id="fn_cas" class="upload-filename"></div>
+  </div>
+
+  <!-- SEÇÃO 3: FAMÍLIA / CÔNJUGE -->
+  <div class="section" id="sec3">
+    <div class="card" id="card-familia-solteiro" style="display:none">
+      <div class="card-title">💍 Estado Civil</div>
+      <p style="font-size:14px;color:var(--muted);padding:8px 0">Nenhum documento adicional necessário para seu estado civil.</p>
+    </div>
+
+    <div class="card" id="card-conjuge" style="display:none">
+      <div class="card-title">💍 Dados do Cônjuge</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Preencha os dados do seu cônjuge / companheiro(a).</p>
+      <div class="field">
+        <label>Nome Completo *</label>
+        <input type="text" id="conjuge_nome" name="conjuge_nome" placeholder="Nome completo">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>CPF *</label>
+          <input type="text" id="conjuge_cpf" name="conjuge_cpf" inputmode="numeric" placeholder="000.000.000-00">
+        </div>
+        <div class="field">
+          <label>Data de Nascimento *</label>
+          <input type="text" id="conjuge_dt_nasc" name="conjuge_dt_nasc" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10">
+        </div>
+      </div>
+      <div class="field">
+        <label>Cidade de Nascimento *</label>
+        <input type="text" id="conjuge_cidade_nasc" name="conjuge_cidade_nasc" placeholder="Ex: São Paulo">
+      </div>
+      <div class="field">
+        <label>Certidão de Casamento *</label>
+        <div class="upload-box" id="box_cert_casamento">
+          <input type="file" id="cert_casamento" name="cert_casamento" accept="image/*,application/pdf" capture="environment"
+                 onchange="previewArquivo(this,'prev_cas','fn_cas');document.getElementById('box_cert_casamento').style.outline=''">
+          <label for="cert_casamento" class="upload-trigger">
+            <div class="upload-icon">💍</div>
+            <div class="upload-label">Fotografar Certidão</div>
+            <div class="upload-sub">Toca aqui para fotografar ou escolher PDF</div>
+          </label>
+          <img id="prev_cas" class="upload-preview">
+          <div id="fn_cas" class="upload-filename"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card-divorcio" style="display:none">
+      <div class="card-title">📄 Averbação de Divórcio</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Envie a certidão com a averbação do divórcio.</p>
+      <div class="field">
+        <label>Documento de Divórcio *</label>
+        <div class="upload-box" id="box_cert_divorcio">
+          <input type="file" id="cert_casamento" name="cert_casamento" accept="image/*,application/pdf" capture="environment"
+                 onchange="previewArquivo(this,'prev_div','fn_div');document.getElementById('box_cert_divorcio').style.outline=''">
+          <label for="cert_casamento" class="upload-trigger">
+            <div class="upload-icon">📄</div>
+            <div class="upload-label">Fotografar Averbação</div>
+            <div class="upload-sub">Toca aqui para fotografar ou escolher PDF</div>
+          </label>
+          <img id="prev_div" class="upload-preview">
+          <div id="fn_div" class="upload-filename"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- SEÇÃO 3: ESCOLARIDADE -->
-  <div class="section" id="sec3">
+  <!-- SEÇÃO 4: ESCOLARIDADE -->
+  <div class="section" id="sec4">
     <div class="card">
       <div class="card-title">🎓 Escolaridade</div>
       <div class="field">
@@ -394,27 +446,27 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     <p style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center">Curso técnico, faculdade, pós, idiomas, etc. Se não tiver, clique em Próximo.</p>
   </div>
 
-  <!-- SEÇÃO 4: DEPENDENTES -->
-  <div class="section" id="sec4">
+  <!-- SEÇÃO 5: FILHOS / DEPENDENTES -->
+  <div class="section" id="sec5">
     <div class="card" style="margin-bottom:12px">
-      <div class="card-title">👶 Dependentes</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Cônjuge, filhos e outros dependentes. Informe todos com CPF e certidão.</p>
+      <div class="card-title">👶 Filhos e Dependentes</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Informe filhos até 21 anos (ou inválidos de qualquer idade). Cônjuge é informado na aba Família.</p>
 
-      <!-- Botão "Não possuo dependentes" -->
+      <!-- Botão "Não possuo filhos" -->
       <label class="toggle-verde" id="lb-sem-dep" onclick="toggleSemDep()">
         <input type="checkbox" id="sem-dep">
         <span class="tog-dot"></span>
-        Não possuo dependentes (filhos, cônjuge ou outros)
+        Não possuo filhos ou outros dependentes
       </label>
     </div>
 
     <div id="deps-container"></div>
 
-    <button class="btn-add-dep" type="button" id="btn-add-dep" onclick="addDep()">+ Adicionar Dependente</button>
+    <button class="btn-add-dep" type="button" id="btn-add-dep" onclick="addDep()">+ Adicionar Filho / Dependente</button>
   </div>
 
-  <!-- SEÇÃO 5: REVISÃO -->
-  <div class="section" id="sec5">
+  <!-- SEÇÃO 6: REVISÃO -->
+  <div class="section" id="sec6">
     <div class="card">
       <div class="card-title">✅ Revisar e Enviar</div>
       <div id="resumo" style="font-size:14px;line-height:1.8"></div>
@@ -441,7 +493,7 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 
 <script>
 let step = 0;
-const TOTAL = 6;
+const TOTAL = 7;
 let depIdx = 0;
 let cursoIdx = 0;
 let deps = [];
@@ -495,14 +547,9 @@ function validarStep() {
     }
   });
 
-  // Fotos obrigatórias na aba Fotos (step 2)
+  // Fotos obrigatórias na aba Fotos (step 2) — selfie e comprovante
   if (step === 2) {
-    const fotosObrig = ['foto_rosto', 'comprovante_endereco'];
-    // cert_casamento só obrigatória se o card estiver visível
-    const cardCas = document.getElementById('card_cert_casamento');
-    if (cardCas && cardCas.style.display !== 'none') fotosObrig.push('cert_casamento');
-
-    fotosObrig.forEach(id => {
+    ['foto_rosto', 'comprovante_endereco'].forEach(id => {
       const inp = document.getElementById(id);
       const box = inp ? inp.closest('.upload-box') : null;
       if (inp && !inp.files[0]) {
@@ -513,50 +560,84 @@ function validarStep() {
       }
     });
     if (!ok) {
-      alert('📸 Envie todas as fotos obrigatórias antes de continuar.');
+      alert('📸 Envie a Selfie e o Comprovante de Endereço antes de continuar.');
       return false;
     }
   }
 
-  // Dependentes (step 4): ou marcou "não possuo" ou preencheu todos os campos
-  if (step === 4) {
+  // Família / Cônjuge (step 3)
+  if (step === 3) {
+    const ec = document.getElementById('estado_civil')?.value;
+    if (ec === 'C' || ec === 'U') {
+      // Casado / União Estável: campos do cônjuge obrigatórios
+      const camposConj = [
+        { id: 'conjuge_nome',       label: 'Nome do cônjuge' },
+        { id: 'conjuge_cpf',        label: 'CPF do cônjuge' },
+        { id: 'conjuge_dt_nasc',    label: 'Data de nascimento do cônjuge' },
+        { id: 'conjuge_cidade_nasc',label: 'Cidade de nascimento do cônjuge' },
+      ];
+      camposConj.forEach(({id, label}) => {
+        const el = document.getElementById(id);
+        if (el && !el.value.trim()) {
+          el.style.borderColor = 'var(--red)';
+          if (ok) el.scrollIntoView({behavior:'smooth', block:'center'});
+          ok = false;
+        } else if (el) { el.style.borderColor = ''; }
+      });
+      // Certidão de casamento obrigatória
+      const certInp = document.getElementById('cert_casamento');
+      const certBox = document.getElementById('box_cert_casamento');
+      if (certInp && !certInp.files[0]) {
+        if (certBox) { certBox.style.outline = '2px solid var(--red)'; if (ok) certBox.scrollIntoView({behavior:'smooth', block:'center'}); }
+        ok = false;
+      } else if (certBox) { certBox.style.outline = ''; }
+      if (!ok) { alert('Preencha todos os dados do cônjuge e envie a certidão de casamento.'); return false; }
+    } else if (ec === 'D') {
+      // Divorciado: averbação obrigatória
+      const certInp = document.getElementById('cert_casamento');
+      const certBox = document.getElementById('box_cert_divorcio');
+      if (certInp && !certInp.files[0]) {
+        if (certBox) { certBox.style.outline = '2px solid var(--red)'; certBox.scrollIntoView({behavior:'smooth', block:'center'}); }
+        alert('Envie o documento de averbação de divórcio antes de continuar.');
+        return false;
+      } else if (certBox) { certBox.style.outline = ''; }
+    }
+  }
+
+  // Filhos / Dependentes (step 5): ou marcou "não possuo" ou preencheu todos
+  if (step === 5) {
     const semDep = document.getElementById('sem-dep')?.checked;
     if (!semDep) {
       const cards = document.querySelectorAll('.dep-card');
       if (cards.length === 0) {
-        alert('👶 Informe ao menos um dependente ou marque "Não possuo dependentes".');
+        alert('👶 Informe ao menos um filho/dependente ou marque "Não possuo filhos ou outros dependentes".');
         return false;
       }
       cards.forEach(card => {
         const idx = card.id.replace('dep-','');
         const campos = [
-          { el: document.getElementById('dn'+idx),   label: 'Nome' },
+          { el: document.getElementById('dn'+idx),    label: 'Nome' },
           { el: document.getElementById('dnasc'+idx), label: 'Data de Nascimento' },
           { el: document.getElementById('dpar'+idx),  label: 'Parentesco' },
           { el: document.getElementById('dcpf'+idx),  label: 'CPF' },
           { el: document.getElementById('dcid'+idx),  label: 'Cidade de Nascimento' },
         ];
-        campos.forEach(({el, label}) => {
+        campos.forEach(({el}) => {
           if (el && !el.value.trim()) {
             el.style.borderColor = 'var(--red)';
             if (ok) el.scrollIntoView({behavior:'smooth', block:'center'});
             ok = false;
-          } else if (el) {
-            el.style.borderColor = '';
-          }
+          } else if (el) { el.style.borderColor = ''; }
         });
-        // Certidão obrigatória
         const certInp = document.getElementById('cert_nasc_'+idx);
         const certBox = document.getElementById('box_cert_nasc_'+idx);
         if (certInp && !certInp.files[0]) {
           if (certBox) { certBox.style.outline = '2px solid var(--red)'; if (ok) certBox.scrollIntoView({behavior:'smooth', block:'center'}); }
           ok = false;
-        } else if (certBox) {
-          certBox.style.outline = '';
-        }
+        } else if (certBox) { certBox.style.outline = ''; }
       });
       if (!ok) {
-        alert('Preencha todos os campos obrigatórios dos dependentes (Nome, Data de Nasc., Parentesco, CPF, Cidade e Certidão).');
+        alert('Preencha todos os campos obrigatórios dos dependentes (Nome, Data Nasc., Parentesco, CPF, Cidade e Certidão).');
         return false;
       }
     }
@@ -565,6 +646,17 @@ function validarStep() {
   if (!ok) { alert('Preencha todos os campos obrigatórios antes de continuar.'); }
   return ok;
 }
+
+// Mostra/oculta cards da seção Família conforme estado civil
+function atualizarSecaoFamilia() {
+  const ec = document.getElementById('estado_civil')?.value;
+  document.getElementById('card-familia-solteiro').style.display = (ec === 'S' || ec === 'V') ? '' : 'none';
+  document.getElementById('card-conjuge').style.display          = (ec === 'C' || ec === 'U') ? '' : 'none';
+  document.getElementById('card-divorcio').style.display         = (ec === 'D')               ? '' : 'none';
+}
+// Chama ao carregar e ao mudar o estado civil
+document.getElementById('estado_civil').addEventListener('change', atualizarSecaoFamilia);
+atualizarSecaoFamilia();
 
 function fmtDepData(s) {
   if (!s) return '';
@@ -645,9 +737,9 @@ function addDep(data) {
         <label>Parentesco *</label>
         <select id="dpar${i}">
           <option value="">Selecione</option>
-          <option value="filho" ${(data&&data.parentesco)==='filho'?'selected':''}>Filho(a)</option>
-          <option value="conjugue" ${(data&&data.parentesco)==='conjugue'?'selected':''}>Cônjuge</option>
-          <option value="outro" ${(data&&data.parentesco)==='outro'?'selected':''}>Outro</option>
+          <option value="filho"    ${(data&&data.parentesco)==='filho'   ?'selected':''}>Filho(a)</option>
+          <option value="enteado" ${(data&&data.parentesco)==='enteado' ?'selected':''}>Enteado(a)</option>
+          <option value="outro"   ${(data&&data.parentesco)==='outro'   ?'selected':''}>Outro</option>
         </select>
       </div>
     </div>
@@ -832,8 +924,9 @@ function renderResumo() {
     <tr><td style="padding:6px 0;color:var(--muted)">Celular</td><td>${document.getElementById('telefone').value}</td></tr>
     <tr><td style="padding:6px 0;color:var(--muted)">E-mail</td><td>${document.getElementById('email').value||'—'}</td></tr>
     <tr><td style="padding:6px 0;color:var(--muted)">Estado Civil</td><td>${estadoCivilMap[ec]||ec}</td></tr>
+    ${(ec==='C'||ec==='U') ? `<tr><td style="padding:6px 0;color:var(--muted)">Cônjuge</td><td>${document.getElementById('conjuge_nome')?.value||'—'}</td></tr>` : ''}
     <tr><td style="padding:6px 0;color:var(--muted)">Endereço</td><td>${document.getElementById('endereco').value}, ${document.getElementById('numero').value} — ${document.getElementById('bairro').value}, ${document.getElementById('cidade').value}/${document.getElementById('estado').value}</td></tr>
-    <tr><td style="padding:6px 0;color:var(--muted)">Dependentes</td><td>${deps.length ? deps.map(d=>d.nome).join(', ') : 'Nenhum'}</td></tr>
+    <tr><td style="padding:6px 0;color:var(--muted)">Filhos/Deps.</td><td>${deps.length ? deps.map(d=>d.nome).join(', ') : 'Nenhum'}</td></tr>
     </table>
   `;
   document.getElementById('resumo').innerHTML = html;
@@ -869,7 +962,11 @@ async function enviar() {
   form.append('rg',            document.getElementById('rg').value);
   form.append('telefone',      document.getElementById('telefone').value);
   form.append('email',         document.getElementById('email').value);
-  form.append('estado_civil',  document.getElementById('estado_civil').value);
+  form.append('estado_civil',      document.getElementById('estado_civil').value);
+  form.append('conjuge_nome',      document.getElementById('conjuge_nome')?.value      || '');
+  form.append('conjuge_cpf',       document.getElementById('conjuge_cpf')?.value       || '');
+  form.append('conjuge_dt_nasc',   document.getElementById('conjuge_dt_nasc')?.value   || '');
+  form.append('conjuge_cidade_nasc',document.getElementById('conjuge_cidade_nasc')?.value|| '');
   form.append('cep',           document.getElementById('cep').value);
   form.append('endereco',      document.getElementById('endereco').value);
   form.append('numero',        document.getElementById('numero').value);
