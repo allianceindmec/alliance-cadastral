@@ -185,7 +185,10 @@ def api_respostas():
             rows = cur.execute("""
                 SELECT r.id, r.filial, r.mat, r.nome,
                        r.dados, r.created_at,
-                       COUNT(a.id) AS qtd_arquivos
+                       COUNT(a.id) AS qtd_arquivos,
+                       JSON_AGG(
+                           JSON_BUILD_OBJECT('id', a.id, 'campo', a.campo, 'nome', a.nome_orig, 'mime', a.mime)
+                       ) FILTER (WHERE a.id IS NOT NULL) AS arquivos
                 FROM respostas r
                 LEFT JOIN arquivos a ON a.resposta_id = r.id
                 GROUP BY r.id
