@@ -488,7 +488,23 @@ function validarStep() {
     }
   });
 
-  // Fotos: não bloqueiam navegação (enviadas quando presentes)
+  // Fotos obrigatórias na aba Fotos (step 2)
+  if (step === 2) {
+    ['foto_rosto', 'comprovante_endereco'].forEach(id => {
+      const inp = document.getElementById(id);
+      const box = inp ? inp.closest('.upload-box') : null;
+      if (inp && !inp.files[0]) {
+        if (box) box.style.outline = '2px solid var(--red)';
+        ok = false;
+      } else {
+        if (box) box.style.outline = '';
+      }
+    });
+    if (!ok) {
+      alert('📸 Envie a Selfie e o Comprovante de Endereço antes de continuar.');
+      return false;
+    }
+  }
 
   if (!ok) { alert('Preencha todos os campos obrigatórios antes de continuar.'); }
   return ok;
@@ -751,6 +767,25 @@ function renderResumo() {
 }
 
 async function enviar() {
+  // Verificação final das fotos obrigatórias
+  const fotosFaltando = ['foto_rosto', 'comprovante_endereco'].filter(id => {
+    const inp = document.getElementById(id);
+    return !inp || !inp.files[0];
+  });
+  if (fotosFaltando.length) {
+    const nomes = { foto_rosto: 'Selfie', comprovante_endereco: 'Comprovante de Endereço' };
+    const lista = fotosFaltando.map(id => nomes[id]).join(' e ');
+    if (confirm(`⚠️ ${lista} ainda não ${fotosFaltando.length > 1 ? 'foram enviados' : 'foi enviado'}.\n\nIr para a aba Fotos agora?`)) {
+      irPara(2);
+      // Destaca as caixas faltando
+      fotosFaltando.forEach(id => {
+        const box = document.getElementById(id)?.closest('.upload-box');
+        if (box) { box.style.outline = '2px solid var(--red)'; box.scrollIntoView({behavior:'smooth', block:'center'}); }
+      });
+    }
+    return;
+  }
+
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
   document.getElementById('loading').classList.add('ativo');
