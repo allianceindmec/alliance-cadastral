@@ -235,6 +235,21 @@ def api_export_zip():
                      download_name=f"cadastral_export_{ts}.zip", as_attachment=True)
 
 
+@app.route("/api/responderam")
+@api_auth
+def api_responderam():
+    """Retorna lista de {mat, filial} de quem já respondeu, opcionalmente filtrado por filial."""
+    filial = request.args.get("filial")
+    with get_db() as conn:
+        if filial:
+            rows = conn.execute(
+                "SELECT mat, filial FROM respostas WHERE filial=%s", (filial,)
+            ).fetchall()
+        else:
+            rows = conn.execute("SELECT mat, filial FROM respostas").fetchall()
+    return jsonify([{"mat": r[0], "filial": r[1]} for r in rows])
+
+
 @app.route("/api/pendentes")
 @api_auth
 def api_pendentes():
