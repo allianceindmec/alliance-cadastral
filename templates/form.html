@@ -406,7 +406,7 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       <div class="card-title">📸 Foto Biométrica</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Tire uma selfie com boa iluminação, fundo claro, rosto centralizado.</p>
       <div class="upload-box">
-        <input type="file" id="foto_rosto" name="foto_rosto" accept="image/*" capture="user" onchange="previewArquivo(this,'prev_rosto','fn_rosto')">
+        <input type="file" id="foto_rosto" name="foto_rosto" accept="image/*" capture="user" onchange="previewSelfie(this,'prev_rosto','fn_rosto')">
         <label for="foto_rosto" class="upload-trigger">
           <div class="upload-icon">🤳</div>
           <div class="upload-label">Tirar Selfie</div>
@@ -439,13 +439,19 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
           <input type="text" id="conjuge_cpf" name="conjuge_cpf" inputmode="numeric" placeholder="000.000.000-00">
         </div>
         <div class="field">
+          <label>RG</label>
+          <input type="text" id="conjuge_rg" name="conjuge_rg" placeholder="Número do RG">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
           <label>Data de Nascimento *</label>
           <input type="text" id="conjuge_dt_nasc" name="conjuge_dt_nasc" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" oninput="fmtDataInput(this)">
         </div>
-      </div>
-      <div class="field">
-        <label>Cidade de Nascimento *</label>
-        <input type="text" id="conjuge_cidade_nasc" name="conjuge_cidade_nasc" placeholder="Ex: São Paulo">
+        <div class="field">
+          <label>Cidade de Nascimento *</label>
+          <input type="text" id="conjuge_cidade_nasc" name="conjuge_cidade_nasc" placeholder="Ex: São Paulo">
+        </div>
       </div>
       <div class="field">
         <label>Certidão de Casamento *</label>
@@ -502,6 +508,25 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     </div>
   </div>
 
+  <!-- SEÇÃO 4: FILHOS / DEPENDENTES -->
+  <div class="section" id="sec4">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">👶 Filhos e Dependentes</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Informe filhos até 21 anos (ou inválidos de qualquer idade). Cônjuge é informado na aba Família.</p>
+
+      <!-- Botão "Não possuo filhos" -->
+      <label class="toggle-verde" id="lb-sem-dep" onclick="toggleSemDep()">
+        <input type="checkbox" id="sem-dep">
+        <span class="tog-dot"></span>
+        Não possuo filhos ou outros dependentes
+      </label>
+    </div>
+
+    <div id="deps-container"></div>
+
+    <button class="btn-add-dep" type="button" id="btn-add-dep" onclick="addDep()">+ Adicionar Filho / Dependente</button>
+  </div>
+
   <!-- SEÇÃO 5: ESCOLARIDADE -->
   <div class="section" id="sec5">
     <div class="card">
@@ -527,25 +552,6 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 
     <button class="btn-add-dep" type="button" onclick="addCurso()">+ Adicionar Curso / Formação</button>
     <p style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center">Curso técnico, faculdade, pós, idiomas, etc. Se não tiver, clique em Próximo.</p>
-  </div>
-
-  <!-- SEÇÃO 4: FILHOS / DEPENDENTES -->
-  <div class="section" id="sec4">
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-title">👶 Filhos e Dependentes</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Informe filhos até 21 anos (ou inválidos de qualquer idade). Cônjuge é informado na aba Família.</p>
-
-      <!-- Botão "Não possuo filhos" -->
-      <label class="toggle-verde" id="lb-sem-dep" onclick="toggleSemDep()">
-        <input type="checkbox" id="sem-dep">
-        <span class="tog-dot"></span>
-        Não possuo filhos ou outros dependentes
-      </label>
-    </div>
-
-    <div id="deps-container"></div>
-
-    <button class="btn-add-dep" type="button" id="btn-add-dep" onclick="addDep()">+ Adicionar Filho / Dependente</button>
   </div>
 
   <!-- SEÇÃO 6: REVISÃO -->
@@ -794,6 +800,42 @@ function fixTelefone() {
   let v = (inp.value||'').trim();
   // Protheus às vezes grava sem o "(" inicial, ex: "14) 99667-2702"
   if (/^\d{2}\)/.test(v)) inp.value = '(' + v;
+}
+
+function previewSelfie(input, prevId, fnId) {
+  const box = input.closest('.upload-box');
+  if (box) box.classList.add('tem-arquivo');
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById(fnId).textContent = '✓ ' + file.name;
+  document.getElementById(fnId).style.display = 'block';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const image = new Image();
+    image.onload = () => {
+      // Desespelha horizontalmente via canvas
+      const canvas = document.createElement('canvas');
+      canvas.width  = image.width;
+      canvas.height = image.height;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(image.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(image, 0, 0);
+      // Atualiza preview
+      const preview = document.getElementById(prevId);
+      preview.src = canvas.toDataURL('image/jpeg', 0.92);
+      preview.style.display = 'block';
+      // Substitui o arquivo no input pelo blob desespelhado
+      canvas.toBlob(blob => {
+        const flipped = new File([blob], file.name, { type: 'image/jpeg' });
+        const dt = new DataTransfer();
+        dt.items.add(flipped);
+        input.files = dt.files;
+      }, 'image/jpeg', 0.92);
+    };
+    image.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function previewArquivo(input, prevId, fnId) {
@@ -1079,9 +1121,10 @@ async function enviar() {
   form.append('telefone',      document.getElementById('telefone').value);
   form.append('email',         document.getElementById('email').value);
   form.append('estado_civil',      document.getElementById('estado_civil').value);
-  form.append('conjuge_nome',      document.getElementById('conjuge_nome')?.value      || '');
-  form.append('conjuge_cpf',       document.getElementById('conjuge_cpf')?.value       || '');
-  form.append('conjuge_dt_nasc',   document.getElementById('conjuge_dt_nasc')?.value   || '');
+  form.append('conjuge_nome',       document.getElementById('conjuge_nome')?.value       || '');
+  form.append('conjuge_cpf',        document.getElementById('conjuge_cpf')?.value        || '');
+  form.append('conjuge_rg',         document.getElementById('conjuge_rg')?.value         || '');
+  form.append('conjuge_dt_nasc',    document.getElementById('conjuge_dt_nasc')?.value    || '');
   form.append('conjuge_cidade_nasc',document.getElementById('conjuge_cidade_nasc')?.value|| '');
   form.append('cep',           document.getElementById('cep').value);
   form.append('endereco',      document.getElementById('endereco').value);

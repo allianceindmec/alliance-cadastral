@@ -114,6 +114,7 @@ def formulario(token):
         "conjuge": {
             "nome":        form.get("conjuge_nome", ""),
             "cpf":         form.get("conjuge_cpf", ""),
+            "rg":          form.get("conjuge_rg", ""),
             "dt_nasc":     form.get("conjuge_dt_nasc", ""),
             "cidade_nasc": form.get("conjuge_cidade_nasc", ""),
         },
