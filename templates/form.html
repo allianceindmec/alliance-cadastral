@@ -183,8 +183,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
           <input type="text" name="cpf" id="cpf" value="{{ d.cpf }}" inputmode="numeric" required>
         </div>
         <div class="field">
-          <label>RG</label>
-          <input type="text" name="rg" id="rg" value="{{ d.rg }}">
+          <label>RG *</label>
+          <input type="text" name="rg" id="rg" value="{{ d.rg }}" required>
         </div>
       </div>
       <div class="row2">
@@ -203,8 +203,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
         </div>
       </div>
       <div class="field">
-        <label>E-mail</label>
-        <input type="email" name="email" id="email" value="{{ d.email }}" autocomplete="email">
+        <label>E-mail *</label>
+        <input type="email" name="email" id="email" value="{{ d.email }}" autocomplete="email" required>
       </div>
     </div>
   </div>
@@ -381,18 +381,48 @@ function renderStep() {
 
 function validarStep() {
   const sec = document.getElementById('sec' + step);
-  const campos = sec.querySelectorAll('[required]');
   let ok = true;
-  campos.forEach(c => {
+
+  // Campos de texto obrigatórios
+  sec.querySelectorAll('[required]').forEach(c => {
+    if (c.type === 'file') return; // tratado abaixo
     if (!c.value.trim()) {
       c.style.borderColor = 'var(--red)';
-      c.focus();
+      if (ok) c.focus();
       ok = false;
     } else {
       c.style.borderColor = '';
     }
   });
-  if (!ok) { alert('Preencha os campos obrigatórios antes de continuar.'); }
+
+  // Fotos obrigatórias (seção 2)
+  if (step === 2) {
+    ['foto_rosto', 'comprovante_endereco'].forEach(id => {
+      const inp = document.getElementById(id);
+      if (!inp) return;
+      const box = inp.closest('.upload-box');
+      if (!inp.files || !inp.files[0]) {
+        box.style.borderColor = 'var(--red)';
+        ok = false;
+      } else {
+        box.style.borderColor = '';
+      }
+    });
+    // Certidão de casamento obrigatória se estado civil C/D/U
+    const ec = document.getElementById('estado_civil').value;
+    if (['C','D','U'].includes(ec)) {
+      const inp = document.getElementById('cert_casamento');
+      const box = inp.closest('.upload-box');
+      if (!inp.files || !inp.files[0]) {
+        box.style.borderColor = 'var(--red)';
+        ok = false;
+      } else {
+        box.style.borderColor = '';
+      }
+    }
+  }
+
+  if (!ok) { alert('Preencha todos os campos obrigatórios antes de continuar.'); }
   return ok;
 }
 
@@ -473,7 +503,11 @@ function addDep(data) {
       </div>
       <div class="field">
         <label>RG</label>
-        <input type="text" id="drg${i}" value="${(data&&data.rg)||''}">
+        <input type="text" id="drg${i}" value="${(data&&data.rg)||''}" placeholder="Nº do RG">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--muted);font-weight:500">
+          <input type="checkbox" id="dsemrg${i}" onchange="toggleRg(${i})" ${(data&&data.sem_rg)?'checked':''}>
+          Não possui RG (recém-nascido)
+        </label>
       </div>
     </div>
     <div class="field">
@@ -481,7 +515,7 @@ function addDep(data) {
       <input type="text" id="dcid${i}" value="${(data&&data.cidade_nasc)||''}">
     </div>
     <div class="field">
-      <label>Certidão de Nascimento</label>
+      <label>Certidão de Nascimento ou Casamento</label>
       <div class="upload-box">
         <input type="file" id="cert_nasc_${i}" name="cert_nasc_${i}" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_dep${i}','fn_dep${i}')">
         <label for="cert_nasc_${i}" class="upload-trigger">
@@ -502,6 +536,13 @@ function remDep(i) {
   if (el) el.remove();
 }
 
+function toggleRg(i) {
+  const cb = document.getElementById('dsemrg'+i);
+  const inp = document.getElementById('drg'+i);
+  if (cb.checked) { inp.value = ''; inp.disabled = true; }
+  else { inp.disabled = false; }
+}
+
 function getDepsData() {
   const result = [];
   document.querySelectorAll('.dep-card').forEach(card => {
@@ -511,7 +552,8 @@ function getDepsData() {
       dt_nasc:    document.getElementById('dnasc'+i)?.value||'',
       parentesco: document.getElementById('dpar'+i)?.value||'',
       cpf:        document.getElementById('dcpf'+i)?.value||'',
-      rg:         document.getElementById('drg'+i)?.value||'',
+      rg:         document.getElementById('dsemrg'+i)?.checked ? '' : (document.getElementById('drg'+i)?.value||''),
+      sem_rg:     document.getElementById('dsemrg'+i)?.checked||false,
       cidade_nasc:document.getElementById('dcid'+i)?.value||'',
     });
   });
