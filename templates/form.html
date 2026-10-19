@@ -398,12 +398,19 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
   <div class="section" id="sec4">
     <div class="card" style="margin-bottom:12px">
       <div class="card-title">👶 Dependentes</div>
-      <p style="font-size:13px;color:var(--muted)">Informe apenas filhos até 21 anos (ou inválidos de qualquer idade). Se não tiver dependentes, clique em Próximo.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Cônjuge, filhos e outros dependentes. Informe todos com CPF e certidão.</p>
+
+      <!-- Botão "Não possuo dependentes" -->
+      <label class="toggle-verde" id="lb-sem-dep" onclick="toggleSemDep()">
+        <input type="checkbox" id="sem-dep">
+        <span class="tog-dot"></span>
+        Não possuo dependentes (filhos, cônjuge ou outros)
+      </label>
     </div>
 
     <div id="deps-container"></div>
 
-    <button class="btn-add-dep" type="button" onclick="addDep()">+ Adicionar Dependente</button>
+    <button class="btn-add-dep" type="button" id="btn-add-dep" onclick="addDep()">+ Adicionar Dependente</button>
   </div>
 
   <!-- SEÇÃO 5: REVISÃO -->
@@ -490,7 +497,12 @@ function validarStep() {
 
   // Fotos obrigatórias na aba Fotos (step 2)
   if (step === 2) {
-    ['foto_rosto', 'comprovante_endereco'].forEach(id => {
+    const fotosObrig = ['foto_rosto', 'comprovante_endereco'];
+    // cert_casamento só obrigatória se o card estiver visível
+    const cardCas = document.getElementById('card_cert_casamento');
+    if (cardCas && cardCas.style.display !== 'none') fotosObrig.push('cert_casamento');
+
+    fotosObrig.forEach(id => {
       const inp = document.getElementById(id);
       const box = inp ? inp.closest('.upload-box') : null;
       if (inp && !inp.files[0]) {
@@ -501,8 +513,52 @@ function validarStep() {
       }
     });
     if (!ok) {
-      alert('📸 Envie a Selfie e o Comprovante de Endereço antes de continuar.');
+      alert('📸 Envie todas as fotos obrigatórias antes de continuar.');
       return false;
+    }
+  }
+
+  // Dependentes (step 4): ou marcou "não possuo" ou preencheu todos os campos
+  if (step === 4) {
+    const semDep = document.getElementById('sem-dep')?.checked;
+    if (!semDep) {
+      const cards = document.querySelectorAll('.dep-card');
+      if (cards.length === 0) {
+        alert('👶 Informe ao menos um dependente ou marque "Não possuo dependentes".');
+        return false;
+      }
+      cards.forEach(card => {
+        const idx = card.id.replace('dep-','');
+        const campos = [
+          { el: document.getElementById('dn'+idx),   label: 'Nome' },
+          { el: document.getElementById('dnasc'+idx), label: 'Data de Nascimento' },
+          { el: document.getElementById('dpar'+idx),  label: 'Parentesco' },
+          { el: document.getElementById('dcpf'+idx),  label: 'CPF' },
+          { el: document.getElementById('dcid'+idx),  label: 'Cidade de Nascimento' },
+        ];
+        campos.forEach(({el, label}) => {
+          if (el && !el.value.trim()) {
+            el.style.borderColor = 'var(--red)';
+            if (ok) el.scrollIntoView({behavior:'smooth', block:'center'});
+            ok = false;
+          } else if (el) {
+            el.style.borderColor = '';
+          }
+        });
+        // Certidão obrigatória
+        const certInp = document.getElementById('cert_nasc_'+idx);
+        const certBox = document.getElementById('box_cert_nasc_'+idx);
+        if (certInp && !certInp.files[0]) {
+          if (certBox) { certBox.style.outline = '2px solid var(--red)'; if (ok) certBox.scrollIntoView({behavior:'smooth', block:'center'}); }
+          ok = false;
+        } else if (certBox) {
+          certBox.style.outline = '';
+        }
+      });
+      if (!ok) {
+        alert('Preencha todos os campos obrigatórios dos dependentes (Nome, Data de Nasc., Parentesco, CPF, Cidade e Certidão).');
+        return false;
+      }
     }
   }
 
@@ -578,7 +634,7 @@ function addDep(data) {
     </div>
     <div class="field">
       <label>Nome Completo *</label>
-      <input type="text" id="dn${i}" value="${(data&&data.nome)||''}" placeholder="Nome">
+      <input type="text" id="dn${i}" value="${(data&&data.nome)||''}" placeholder="Nome completo">
     </div>
     <div class="row2">
       <div class="field">
@@ -586,9 +642,10 @@ function addDep(data) {
         <input type="text" id="dnasc${i}" value="${fmtDepData((data&&data.dt_nasc)||'')}" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10">
       </div>
       <div class="field">
-        <label>Parentesco</label>
+        <label>Parentesco *</label>
         <select id="dpar${i}">
-          <option value="filho">Filho(a)</option>
+          <option value="">Selecione</option>
+          <option value="filho" ${(data&&data.parentesco)==='filho'?'selected':''}>Filho(a)</option>
           <option value="conjugue" ${(data&&data.parentesco)==='conjugue'?'selected':''}>Cônjuge</option>
           <option value="outro" ${(data&&data.parentesco)==='outro'?'selected':''}>Outro</option>
         </select>
@@ -596,8 +653,8 @@ function addDep(data) {
     </div>
     <div class="row2">
       <div class="field">
-        <label>CPF</label>
-        <input type="text" id="dcpf${i}" value="${(data&&data.cpf)||''}" inputmode="numeric">
+        <label>CPF *</label>
+        <input type="text" id="dcpf${i}" value="${(data&&data.cpf)||''}" inputmode="numeric" placeholder="000.000.000-00">
       </div>
       <div class="field">
         <label>RG</label>
@@ -610,13 +667,13 @@ function addDep(data) {
       </div>
     </div>
     <div class="field">
-      <label>Cidade de Nascimento</label>
-      <input type="text" id="dcid${i}" value="${(data&&data.cidade_nasc)||''}">
+      <label>Cidade de Nascimento *</label>
+      <input type="text" id="dcid${i}" value="${(data&&data.cidade_nasc)||''}" placeholder="Ex: São Paulo">
     </div>
     <div class="field">
-      <label>Certidão de Nascimento ou Casamento</label>
-      <div class="upload-box">
-        <input type="file" id="cert_nasc_${i}" name="cert_nasc_${i}" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_dep${i}','fn_dep${i}')">
+      <label>Certidão de Nascimento ou Casamento *</label>
+      <div class="upload-box" id="box_cert_nasc_${i}">
+        <input type="file" id="cert_nasc_${i}" name="cert_nasc_${i}" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_dep${i}','fn_dep${i}');document.getElementById('box_cert_nasc_${i}').style.outline=''">
         <label for="cert_nasc_${i}" class="upload-trigger">
           <div class="upload-icon">📋</div>
           <div class="upload-label">Fotografar Certidão</div>
@@ -633,6 +690,22 @@ function addDep(data) {
 function remDep(i) {
   const el = document.getElementById('dep-'+i);
   if (el) el.remove();
+}
+
+function toggleSemDep() {
+  const cb = document.getElementById('sem-dep');
+  cb.checked = !cb.checked;
+  const lb = document.getElementById('lb-sem-dep');
+  const btnAdd = document.getElementById('btn-add-dep');
+  if (cb.checked) {
+    lb.classList.add('ativo');
+    // Remove todos os deps adicionados
+    document.getElementById('deps-container').innerHTML = '';
+    btnAdd.style.display = 'none';
+  } else {
+    lb.classList.remove('ativo');
+    btnAdd.style.display = '';
+  }
 }
 
 function toggleRg(i) {
