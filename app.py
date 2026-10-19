@@ -137,6 +137,10 @@ def formulario(token):
     for i in range(10):
         CAMPOS_ARQUIVO.append(f"cert_nasc_{i}")
 
+    arqs_recebidos = {k: (files[k].filename, len(files[k].read()), files[k].seek(0)) for k in files}
+    print(f"[POST] arquivos recebidos: {arqs_recebidos}", flush=True)
+    print(f"[POST] content-length: {request.content_length}", flush=True)
+
     with get_db() as conn:
         row = conn.execute("""
             INSERT INTO respostas (token, filial, mat, nome, dados)
