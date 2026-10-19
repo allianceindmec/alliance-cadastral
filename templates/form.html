@@ -80,10 +80,14 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 .upload-box {
   border: 2px dashed var(--border); border-radius: var(--radius);
   text-align: center; transition: all .2s; background: var(--bg);
+  position: relative; overflow: hidden;
 }
 .upload-box:hover, .upload-box.tem-arquivo { border-color: var(--purple); background: #f5f2ff; }
-.upload-box input[type=file] { position:absolute;left:-9999px;width:1px;height:1px;opacity:0; }
-.upload-trigger { display: block; padding: 20px 16px; cursor: pointer; }
+.upload-box input[type=file] {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; z-index: 2;
+}
+.upload-trigger { display: block; padding: 20px 16px; cursor: pointer; position: relative; z-index: 1; pointer-events: none; }
 .upload-icon { font-size: 36px; margin-bottom: 8px; }
 .upload-label { font-size: 13px; font-weight: 600; color: var(--purple); }
 .upload-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
