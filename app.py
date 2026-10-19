@@ -242,6 +242,31 @@ def api_export_zip():
                      download_name=f"cadastral_export_{ts}.zip", as_attachment=True)
 
 
+@app.route("/api/resposta/<int:resp_id>")
+@api_auth
+def api_resposta_single(resp_id):
+    with get_db() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            row = cur.execute("""
+                SELECT r.id, r.filial, r.mat, r.nome,
+                       r.dados, r.created_at,
+                       COUNT(a.id) AS qtd_arquivos,
+                       JSON_AGG(
+                           JSON_BUILD_OBJECT('id', a.id, 'campo', a.campo,
+                                             'nome', a.nome_orig, 'mime', a.mime)
+                       ) FILTER (WHERE a.id IS NOT NULL) AS arquivos
+                FROM respostas r
+                LEFT JOIN arquivos a ON a.resposta_id = r.id
+                WHERE r.id = %s
+                GROUP BY r.id
+            """, (resp_id,)).fetchone()
+    if not row:
+        abort(404)
+    d = dict(row)
+    d["created_at"] = d["created_at"].isoformat() if d["created_at"] else None
+    return jsonify(d)
+
+
 @app.route("/api/responderam")
 @api_auth
 def api_responderam():
