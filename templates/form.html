@@ -80,14 +80,10 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 .upload-box {
   border: 2px dashed var(--border); border-radius: var(--radius);
   text-align: center; transition: all .2s; background: var(--bg);
-  position: relative; overflow: hidden;
 }
 .upload-box:hover, .upload-box.tem-arquivo { border-color: var(--purple); background: #f5f2ff; }
-.upload-box input[type=file] {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  opacity: 0; cursor: pointer; z-index: 2;
-}
-.upload-trigger { display: block; padding: 20px 16px; cursor: pointer; position: relative; z-index: 1; pointer-events: none; }
+.upload-box input[type=file] { display: none; }
+.upload-trigger { display: block; padding: 20px 16px; cursor: pointer; }
 .upload-icon { font-size: 36px; margin-bottom: 8px; }
 .upload-label { font-size: 13px; font-weight: 600; color: var(--purple); }
 .upload-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
@@ -198,9 +194,10 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 <div class="steps" id="steps">
   <button class="step-btn ativo" onclick="irPara(0)"><span class="step-num">👤</span>Pessoal</button>
   <button class="step-btn" onclick="irPara(1)"><span class="step-num">🏠</span>Endereço</button>
-  <button class="step-btn" onclick="irPara(2)"><span class="step-num">🎓</span>Escolaridade</button>
-  <button class="step-btn" onclick="irPara(3)"><span class="step-num">👶</span>Dependentes</button>
-  <button class="step-btn" onclick="irPara(4)"><span class="step-num">✅</span>Revisar</button>
+  <button class="step-btn" onclick="irPara(2)"><span class="step-num">📸</span>Fotos</button>
+  <button class="step-btn" onclick="irPara(3)"><span class="step-num">🎓</span>Escolaridade</button>
+  <button class="step-btn" onclick="irPara(4)"><span class="step-num">👶</span>Dependentes</button>
+  <button class="step-btn" onclick="irPara(5)"><span class="step-num">✅</span>Revisar</button>
 </div>
 
 <div class="container">
@@ -270,20 +267,6 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
         </div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-title">📸 Foto Biométrica</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Tire uma selfie com boa iluminação, fundo claro, rosto centralizado.</p>
-      <div class="upload-box">
-        <input type="file" id="foto_rosto" name="foto_rosto" accept="image/*" onchange="previewArquivo(this,'prev_rosto','fn_rosto')">
-        <label for="foto_rosto" class="upload-trigger">
-          <div class="upload-icon">🤳</div>
-          <div class="upload-label">Tirar Selfie</div>
-          <div class="upload-sub">Toca aqui para tirar uma foto ou escolher da galeria</div>
-        </label>
-        <img id="prev_rosto" class="upload-preview">
-        <div id="fn_rosto" class="upload-filename"></div>
-      </div>
-    </div>
   </div>
 
   <!-- SEÇÃO 1: ENDEREÇO -->
@@ -328,11 +311,30 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
         <input type="text" name="cidade" id="cidade" value="{{ d.cidade }}" required>
       </div>
     </div>
+  </div>
+
+  <!-- SEÇÃO 2: FOTOS / DOCUMENTOS -->
+  <div class="section" id="sec2">
+    <div class="card">
+      <div class="card-title">📸 Foto Biométrica</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Tire uma selfie com boa iluminação, fundo claro, rosto centralizado.</p>
+      <div class="upload-box">
+        <input type="file" id="foto_rosto" name="foto_rosto" accept="image/*" capture="user" onchange="previewArquivo(this,'prev_rosto','fn_rosto')">
+        <label for="foto_rosto" class="upload-trigger">
+          <div class="upload-icon">🤳</div>
+          <div class="upload-label">Tirar Selfie</div>
+          <div class="upload-sub">Toca aqui para abrir a câmera frontal</div>
+        </label>
+        <img id="prev_rosto" class="upload-preview">
+        <div id="fn_rosto" class="upload-filename"></div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-title">📄 Comprovante de Endereço</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Conta de luz, água ou telefone fixo dos últimos 3 meses.</p>
       <div class="upload-box">
-        <input type="file" id="comprovante_endereco" name="comprovante_endereco" accept="image/*,application/pdf" onchange="previewArquivo(this,'prev_comp','fn_comp')">
+        <input type="file" id="comprovante_endereco" name="comprovante_endereco" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_comp','fn_comp')">
         <label for="comprovante_endereco" class="upload-trigger">
           <div class="upload-icon">🏠</div>
           <div class="upload-label">Fotografar Comprovante</div>
@@ -342,10 +344,11 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
         <div id="fn_comp" class="upload-filename"></div>
       </div>
     </div>
+
     <div class="card" id="card_cert_casamento" style="display:none">
       <div class="card-title">💍 Certidão de Casamento / Divórcio</div>
       <div class="upload-box">
-        <input type="file" id="cert_casamento" name="cert_casamento" accept="image/*,application/pdf" onchange="previewArquivo(this,'prev_cas','fn_cas')">
+        <input type="file" id="cert_casamento" name="cert_casamento" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_cas','fn_cas')">
         <label for="cert_casamento" class="upload-trigger">
           <div class="upload-icon">📋</div>
           <div class="upload-label">Fotografar Certidão</div>
@@ -357,8 +360,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     </div>
   </div>
 
-  <!-- SEÇÃO 2: ESCOLARIDADE -->
-  <div class="section" id="sec2">
+  <!-- SEÇÃO 3: ESCOLARIDADE -->
+  <div class="section" id="sec3">
     <div class="card">
       <div class="card-title">🎓 Escolaridade</div>
       <div class="field">
@@ -384,8 +387,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     <p style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center">Curso técnico, faculdade, pós, idiomas, etc. Se não tiver, clique em Próximo.</p>
   </div>
 
-  <!-- SEÇÃO 3: DEPENDENTES -->
-  <div class="section" id="sec3">
+  <!-- SEÇÃO 4: DEPENDENTES -->
+  <div class="section" id="sec4">
     <div class="card" style="margin-bottom:12px">
       <div class="card-title">👶 Dependentes</div>
       <p style="font-size:13px;color:var(--muted)">Informe apenas filhos até 21 anos (ou inválidos de qualquer idade). Se não tiver dependentes, clique em Próximo.</p>
@@ -396,8 +399,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     <button class="btn-add-dep" type="button" onclick="addDep()">+ Adicionar Dependente</button>
   </div>
 
-  <!-- SEÇÃO 4: REVISÃO -->
-  <div class="section" id="sec4">
+  <!-- SEÇÃO 5: REVISÃO -->
+  <div class="section" id="sec5">
     <div class="card">
       <div class="card-title">✅ Revisar e Enviar</div>
       <div id="resumo" style="font-size:14px;line-height:1.8"></div>
@@ -424,7 +427,7 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 
 <script>
 let step = 0;
-const TOTAL = 5;
+const TOTAL = 6;
 let depIdx = 0;
 let cursoIdx = 0;
 let deps = [];
@@ -589,7 +592,7 @@ function addDep(data) {
     <div class="field">
       <label>Certidão de Nascimento ou Casamento</label>
       <div class="upload-box">
-        <input type="file" id="cert_nasc_${i}" name="cert_nasc_${i}" accept="image/*,application/pdf" onchange="previewArquivo(this,'prev_dep${i}','fn_dep${i}')">
+        <input type="file" id="cert_nasc_${i}" name="cert_nasc_${i}" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_dep${i}','fn_dep${i}')">
         <label for="cert_nasc_${i}" class="upload-trigger">
           <div class="upload-icon">📋</div>
           <div class="upload-label">Fotografar Certidão</div>
@@ -651,22 +654,16 @@ function addCurso(data) {
       <label>Instituição *</label>
       <input type="text" id="cinst${i}" value="${(data&&data.instituicao)||''}" placeholder="Ex: SENAI, USP, UNESP..." required>
     </div>
-    <div id="cand_toggle${i}" onclick="toggleAndamento(${i})"
-      style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;
-             border:2px solid var(--border);background:var(--bg);margin-bottom:14px;transition:all .2s;
-             ${(data&&data.em_andamento)?'border-color:var(--green);background:#f0fdf4;':''}"
-    >
-      <div id="cand_dot${i}" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);
-           flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;
-           ${(data&&data.em_andamento)?'background:var(--green);border-color:var(--green);':''}"
-      >${(data&&data.em_andamento)?'<span style=\\'color:white;font-size:13px;line-height:1\\'>✓</span>':''}</div>
-      <input type="checkbox" id="cand${i}" style="display:none" ${(data&&data.em_andamento)?'checked':''}>
-      <span style="font-size:13px;font-weight:600;${(data&&data.em_andamento)?'color:var(--green);':'color:var(--muted);'}">Em andamento (ainda não concluído)</span>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="cand${i}" onchange="toggleAndamento(${i})" ${(data&&data.em_andamento)?'checked':''}>
+        <span>Em andamento (não concluído)</span>
+      </label>
     </div>
     <div class="field">
       <label>Certificado / Diploma (foto ou PDF)</label>
       <div class="upload-box" id="box_cert_curso_${i}">
-        <input type="file" id="cert_curso_${i}" name="cert_curso_${i}" accept="image/*,application/pdf" onchange="previewArquivo(this,'prev_curso${i}','fn_curso${i}')">
+        <input type="file" id="cert_curso_${i}" name="cert_curso_${i}" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_curso${i}','fn_curso${i}')">
         <label for="cert_curso_${i}" class="upload-trigger">
           <div class="upload-icon">📜</div>
           <div class="upload-label">Fotografar Certificado</div>
@@ -686,25 +683,10 @@ function remCurso(i) {
 }
 
 function toggleAndamento(i) {
-  const cb  = document.getElementById('cand'+i);
+  const cb = document.getElementById('cand'+i);
   const inp = document.getElementById('cano'+i);
-  const tog = document.getElementById('cand_toggle'+i);
-  const dot = document.getElementById('cand_dot'+i);
-  const lbl = tog.querySelector('span');
-  cb.checked = !cb.checked;
-  if (cb.checked) {
-    inp.value = ''; inp.disabled = true; inp.placeholder = 'Em andamento';
-    tog.style.borderColor = 'var(--green)'; tog.style.background = '#f0fdf4';
-    dot.style.background = 'var(--green)'; dot.style.borderColor = 'var(--green)';
-    dot.innerHTML = '<span style="color:white;font-size:13px;line-height:1">✓</span>';
-    lbl.style.color = 'var(--green)';
-  } else {
-    inp.disabled = false; inp.placeholder = 'Ex: 2020';
-    tog.style.borderColor = 'var(--border)'; tog.style.background = 'var(--bg)';
-    dot.style.background = ''; dot.style.borderColor = 'var(--border)';
-    dot.innerHTML = '';
-    lbl.style.color = 'var(--muted)';
-  }
+  if (cb.checked) { inp.value = ''; inp.disabled = true; inp.placeholder = 'Em andamento'; }
+  else { inp.disabled = false; inp.placeholder = 'Ex: 2020'; }
 }
 
 function getCursosData() {
