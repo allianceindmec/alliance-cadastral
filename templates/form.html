@@ -203,8 +203,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
   <button class="step-btn" onclick="irPara(1)"><span class="step-num">🏠</span>Endereço</button>
   <button class="step-btn" onclick="irPara(2)"><span class="step-num">📸</span>Fotos</button>
   <button class="step-btn" onclick="irPara(3)"><span class="step-num">💍</span>Família</button>
-  <button class="step-btn" onclick="irPara(4)"><span class="step-num">🎓</span>Escolaridade</button>
-  <button class="step-btn" onclick="irPara(5)"><span class="step-num">👶</span>Filhos</button>
+  <button class="step-btn" onclick="irPara(4)"><span class="step-num">👶</span>Filhos</button>
+  <button class="step-btn" onclick="irPara(5)"><span class="step-num">🎓</span>Escolaridade</button>
   <button class="step-btn" onclick="irPara(6)"><span class="step-num">✅</span>Revisar</button>
 </div>
 
@@ -440,7 +440,7 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
         </div>
         <div class="field">
           <label>Data de Nascimento *</label>
-          <input type="text" id="conjuge_dt_nasc" name="conjuge_dt_nasc" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10">
+          <input type="text" id="conjuge_dt_nasc" name="conjuge_dt_nasc" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" oninput="fmtDataInput(this)">
         </div>
       </div>
       <div class="field">
@@ -502,8 +502,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     </div>
   </div>
 
-  <!-- SEÇÃO 4: ESCOLARIDADE -->
-  <div class="section" id="sec4">
+  <!-- SEÇÃO 5: ESCOLARIDADE -->
+  <div class="section" id="sec5">
     <div class="card">
       <div class="card-title">🎓 Escolaridade</div>
       <div class="field">
@@ -529,8 +529,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     <p style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center">Curso técnico, faculdade, pós, idiomas, etc. Se não tiver, clique em Próximo.</p>
   </div>
 
-  <!-- SEÇÃO 5: FILHOS / DEPENDENTES -->
-  <div class="section" id="sec5">
+  <!-- SEÇÃO 4: FILHOS / DEPENDENTES -->
+  <div class="section" id="sec4">
     <div class="card" style="margin-bottom:12px">
       <div class="card-title">👶 Filhos e Dependentes</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Informe filhos até 21 anos (ou inválidos de qualquer idade). Cônjuge é informado na aba Família.</p>
@@ -720,8 +720,8 @@ function validarStep() {
     }
   }
 
-  // Filhos / Dependentes (step 5): ou marcou "não possuo" ou preencheu todos
-  if (step === 5) {
+  // Filhos / Dependentes (step 4): ou marcou "não possuo" ou preencheu todos
+  if (step === 4) {
     const semDep = document.getElementById('sem-dep')?.checked;
     if (!semDep) {
       const cards = document.querySelectorAll('.dep-card');
@@ -774,6 +774,13 @@ function atualizarSecaoFamilia() {
 // Chama ao carregar e ao mudar o estado civil
 document.getElementById('estado_civil').addEventListener('change', atualizarSecaoFamilia);
 atualizarSecaoFamilia();
+
+function fmtDataInput(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 8);
+  if (v.length > 4) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4);
+  else if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  el.value = v;
+}
 
 function fmtDepData(s) {
   if (!s) return '';
@@ -848,7 +855,7 @@ function addDep(data) {
     <div class="row2">
       <div class="field">
         <label>Data de Nascimento *</label>
-        <input type="text" id="dnasc${i}" value="${fmtDepData((data&&data.dt_nasc)||'')}" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10">
+        <input type="text" id="dnasc${i}" value="${fmtDepData((data&&data.dt_nasc)||'')}" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" oninput="fmtDataInput(this)">
       </div>
       <div class="field">
         <label>Parentesco *</label>
