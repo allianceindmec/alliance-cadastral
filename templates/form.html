@@ -481,6 +481,25 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
         </div>
       </div>
     </div>
+
+    <div class="card" id="card-obito" style="display:none">
+      <div class="card-title">📄 Certidão de Óbito do Cônjuge</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Envie a certidão de óbito do cônjuge falecido.</p>
+      <div class="field">
+        <label>Certidão de Óbito *</label>
+        <div class="upload-box" id="box_cert_obito">
+          <input type="file" id="cert_obito" name="cert_obito" accept="image/*,application/pdf" capture="environment"
+                 onchange="previewArquivo(this,'prev_obito','fn_obito');document.getElementById('box_cert_obito').style.outline=''">
+          <label for="cert_obito" class="upload-trigger">
+            <div class="upload-icon">📄</div>
+            <div class="upload-label">Fotografar Certidão</div>
+            <div class="upload-sub">Toca aqui para fotografar ou escolher PDF</div>
+          </label>
+          <img id="prev_obito" class="upload-preview">
+          <div id="fn_obito" class="upload-filename"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- SEÇÃO 4: ESCOLARIDADE -->
@@ -683,12 +702,19 @@ function validarStep() {
       } else if (certBox) { certBox.style.outline = ''; }
       if (!ok) { alert('Preencha todos os dados do cônjuge e envie a certidão de casamento.'); return false; }
     } else if (ec === 'D') {
-      // Divorciado: averbação obrigatória
       const certInp = document.getElementById('cert_casamento');
       const certBox = document.getElementById('box_cert_divorcio');
       if (certInp && !certInp.files[0]) {
         if (certBox) { certBox.style.outline = '2px solid var(--red)'; certBox.scrollIntoView({behavior:'smooth', block:'center'}); }
         alert('Envie o documento de averbação de divórcio antes de continuar.');
+        return false;
+      } else if (certBox) { certBox.style.outline = ''; }
+    } else if (ec === 'V') {
+      const certInp = document.getElementById('cert_obito');
+      const certBox = document.getElementById('box_cert_obito');
+      if (certInp && !certInp.files[0]) {
+        if (certBox) { certBox.style.outline = '2px solid var(--red)'; certBox.scrollIntoView({behavior:'smooth', block:'center'}); }
+        alert('Envie a Certidão de Óbito do cônjuge antes de continuar.');
         return false;
       } else if (certBox) { certBox.style.outline = ''; }
     }
@@ -740,9 +766,10 @@ function validarStep() {
 // Mostra/oculta cards da seção Família conforme estado civil
 function atualizarSecaoFamilia() {
   const ec = document.getElementById('estado_civil')?.value;
-  document.getElementById('card-familia-solteiro').style.display = (ec === 'S' || ec === 'V') ? '' : 'none';
+  document.getElementById('card-familia-solteiro').style.display = (ec === 'S')               ? '' : 'none';
   document.getElementById('card-conjuge').style.display          = (ec === 'C' || ec === 'U') ? '' : 'none';
   document.getElementById('card-divorcio').style.display         = (ec === 'D')               ? '' : 'none';
+  document.getElementById('card-obito').style.display            = (ec === 'V')               ? '' : 'none';
 }
 // Chama ao carregar e ao mudar o estado civil
 document.getElementById('estado_civil').addEventListener('change', atualizarSecaoFamilia);
@@ -1064,7 +1091,7 @@ async function enviar() {
   form.append('dependentes_json',         JSON.stringify(getDepsData()));
 
   // Arquivos
-  ['foto_rosto','comprovante_endereco','cert_casamento',
+  ['foto_rosto','comprovante_endereco','cert_casamento','cert_obito',
    'doc_cpf','doc_rg_frente','doc_rg_verso','doc_cert_nasc_func'].forEach(id => {
     const inp = document.getElementById(id);
     if (inp && inp.files[0]) form.append(id, inp.files[0]);
