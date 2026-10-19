@@ -177,15 +177,16 @@ def obrigado():
 @api_auth
 def api_respostas():
     with get_db() as conn:
-        rows = conn.execute("""
-            SELECT r.id, r.filial, r.mat, r.nome,
-                   r.dados, r.created_at,
-                   COUNT(a.id) AS qtd_arquivos
-            FROM respostas r
-            LEFT JOIN arquivos a ON a.resposta_id = r.id
-            GROUP BY r.id
-            ORDER BY r.created_at DESC
-        """, row_factory=dict_row).fetchall()
+        with conn.cursor(row_factory=dict_row) as cur:
+            rows = cur.execute("""
+                SELECT r.id, r.filial, r.mat, r.nome,
+                       r.dados, r.created_at,
+                       COUNT(a.id) AS qtd_arquivos
+                FROM respostas r
+                LEFT JOIN arquivos a ON a.resposta_id = r.id
+                GROUP BY r.id
+                ORDER BY r.created_at DESC
+            """).fetchall()
     result = []
     for row in rows:
         d = dict(row)
@@ -214,9 +215,10 @@ def api_export_zip():
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         with get_db() as conn:
-            respostas = conn.execute(
-                "SELECT * FROM respostas ORDER BY id", row_factory=dict_row
-            ).fetchall()
+            with conn.cursor(row_factory=dict_row) as cur:
+                respostas = cur.execute(
+                    "SELECT * FROM respostas ORDER BY id"
+                ).fetchall()
             arquivos = conn.execute("SELECT * FROM arquivos").fetchall()
 
         resumo = [{k: str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v
