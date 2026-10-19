@@ -90,6 +90,13 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 .upload-preview { max-width: 100%; max-height: 200px; border-radius: 10px; margin-top: 12px; display: none; }
 .upload-filename { font-size: 12px; color: var(--green); margin-top: 8px; font-weight: 600; display: none; }
 
+/* TOGGLE VERDE */
+.toggle-verde { display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:8px 14px;border-radius:20px;border:2px solid var(--border);background:var(--bg);cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);transition:all .2s;user-select:none; }
+.toggle-verde input[type=checkbox] { display:none; }
+.toggle-verde .tog-dot { width:16px;height:16px;border-radius:50%;border:2px solid var(--border);background:#fff;transition:all .2s; }
+.toggle-verde.ativo { border-color:#16a34a;background:#f0fdf4;color:#16a34a; }
+.toggle-verde.ativo .tog-dot { border-color:#16a34a;background:#16a34a; }
+
 /* DEPENDENTE CARD */
 .dep-card { background: #f8f7ff; border: 1.5px solid #d4c8f8; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
 .dep-titulo { font-size: 13px; font-weight: 700; color: var(--purple2); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
@@ -579,8 +586,9 @@ function addDep(data) {
       <div class="field">
         <label>RG</label>
         <input type="text" id="drg${i}" value="${(data&&data.rg)||''}" placeholder="Nº do RG">
-        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--muted);font-weight:500">
-          <input type="checkbox" id="dsemrg${i}" onchange="toggleRg(${i})" ${(data&&data.sem_rg)?'checked':''}>
+        <label class="toggle-verde ${(data&&data.sem_rg)?'ativo':''}" id="lbsemrg${i}" onclick="toggleRg(${i})">
+          <input type="checkbox" id="dsemrg${i}" ${(data&&data.sem_rg)?'checked':''}>
+          <span class="tog-dot"></span>
           Não possui RG (recém-nascido)
         </label>
       </div>
@@ -613,9 +621,11 @@ function remDep(i) {
 
 function toggleRg(i) {
   const cb = document.getElementById('dsemrg'+i);
+  cb.checked = !cb.checked;
   const inp = document.getElementById('drg'+i);
-  if (cb.checked) { inp.value = ''; inp.disabled = true; }
-  else { inp.disabled = false; }
+  const lb = document.getElementById('lbsemrg'+i);
+  if (cb.checked) { inp.value = ''; inp.disabled = true; lb.classList.add('ativo'); }
+  else { inp.disabled = false; lb.classList.remove('ativo'); }
 }
 
 function addCurso(data) {
@@ -643,7 +653,12 @@ function addCurso(data) {
       </div>
       <div class="field">
         <label>Ano de Conclusão</label>
-        <input type="text" id="cano${i}" value="${(data&&data.ano)||''}" placeholder="Ex: 2020 (deixe vazio se em andamento)" inputmode="numeric" maxlength="4">
+        <input type="text" id="cano${i}" value="${(data&&data.ano)||''}" placeholder="Ex: 2020" inputmode="numeric" maxlength="4">
+        <label class="toggle-verde ${(data&&data.em_andamento)?'ativo':''}" id="lband${i}" onclick="toggleAndamento(${i})">
+          <input type="checkbox" id="cand${i}" ${(data&&data.em_andamento)?'checked':''}>
+          <span class="tog-dot"></span>
+          Em andamento (não concluído)
+        </label>
       </div>
     </div>
     <div class="field">
@@ -653,12 +668,6 @@ function addCurso(data) {
     <div class="field">
       <label>Instituição *</label>
       <input type="text" id="cinst${i}" value="${(data&&data.instituicao)||''}" placeholder="Ex: SENAI, USP, UNESP..." required>
-    </div>
-    <div class="field">
-      <label style="display:flex;align-items:center;gap:6px">
-        <input type="checkbox" id="cand${i}" onchange="toggleAndamento(${i})" ${(data&&data.em_andamento)?'checked':''}>
-        <span>Em andamento (não concluído)</span>
-      </label>
     </div>
     <div class="field">
       <label>Certificado / Diploma (foto ou PDF)</label>
@@ -684,9 +693,11 @@ function remCurso(i) {
 
 function toggleAndamento(i) {
   const cb = document.getElementById('cand'+i);
+  cb.checked = !cb.checked;
   const inp = document.getElementById('cano'+i);
-  if (cb.checked) { inp.value = ''; inp.disabled = true; inp.placeholder = 'Em andamento'; }
-  else { inp.disabled = false; inp.placeholder = 'Ex: 2020'; }
+  const lb = document.getElementById('lband'+i);
+  if (cb.checked) { inp.value = ''; inp.disabled = true; inp.placeholder = 'Em andamento'; lb.classList.add('ativo'); }
+  else { inp.disabled = false; inp.placeholder = 'Ex: 2020'; lb.classList.remove('ativo'); }
 }
 
 function getCursosData() {
