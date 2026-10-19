@@ -481,32 +481,7 @@ function validarStep() {
     }
   });
 
-  // Fotos obrigatórias (seção 2)
-  if (step === 2) {
-    ['foto_rosto', 'comprovante_endereco'].forEach(id => {
-      const inp = document.getElementById(id);
-      if (!inp) return;
-      const box = inp.closest('.upload-box');
-      if (!box.classList.contains('tem-arquivo')) {
-        box.style.borderColor = 'var(--red)';
-        ok = false;
-      } else {
-        box.style.borderColor = '';
-      }
-    });
-    // Certidão de casamento obrigatória se estado civil C/D/U
-    const ec = document.getElementById('estado_civil').value;
-    if (['C','D','U'].includes(ec)) {
-      const inp = document.getElementById('cert_casamento');
-      const box = inp.closest('.upload-box');
-      if (!box.classList.contains('tem-arquivo')) {
-        box.style.borderColor = 'var(--red)';
-        ok = false;
-      } else {
-        box.style.borderColor = '';
-      }
-    }
-  }
+  // Fotos: não bloqueiam navegação (enviadas quando presentes)
 
   if (!ok) { alert('Preencha todos os campos obrigatórios antes de continuar.'); }
   return ok;
