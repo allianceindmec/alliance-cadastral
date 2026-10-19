@@ -159,8 +159,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
   padding:32px 24px;text-align:center;color:white;
 ">
   <div style="font-size:52px;margin-bottom:16px">📋</div>
-  <div style="font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;opacity:.7;margin-bottom:8px">Alliance Indústria</div>
-  <h1 style="font-size:24px;font-weight:800;line-height:1.3;margin-bottom:16px">Atualização<br>Cadastral 2025</h1>
+  <div style="font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;opacity:.7;margin-bottom:8px">Alliance Indústria Mecânica</div>
+  <h1 style="font-size:24px;font-weight:800;line-height:1.3;margin-bottom:16px">Atualização<br>Cadastral 2026</h1>
   <p style="font-size:14px;line-height:1.7;opacity:.9;max-width:340px;margin-bottom:20px">
     Olá, <strong>{{ d.nome.split()[0] }}</strong>! O RH precisa atualizar seus dados para atender às novas obrigações do <strong>eSocial</strong> e manter seu histórico profissional completo.
   </p>
@@ -184,7 +184,7 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 </div>
 
 <div class="header">
-  <div class="logo">Alliance Indústria</div>
+  <div class="logo">Alliance Indústria Mecânica</div>
   <h1>Atualização Cadastral</h1>
   <p>Olá, <strong>{{ d.nome }}</strong>! Por favor, confirme seus dados abaixo.</p>
 </div>
@@ -485,7 +485,7 @@ function validarStep() {
       const inp = document.getElementById(id);
       if (!inp) return;
       const box = inp.closest('.upload-box');
-      if (!inp.files || !inp.files[0]) {
+      if (!box.classList.contains('tem-arquivo')) {
         box.style.borderColor = 'var(--red)';
         ok = false;
       } else {
@@ -497,7 +497,7 @@ function validarStep() {
     if (['C','D','U'].includes(ec)) {
       const inp = document.getElementById('cert_casamento');
       const box = inp.closest('.upload-box');
-      if (!inp.files || !inp.files[0]) {
+      if (!box.classList.contains('tem-arquivo')) {
         box.style.borderColor = 'var(--red)';
         ok = false;
       } else {
