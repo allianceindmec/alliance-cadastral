@@ -262,27 +262,74 @@ def api_criar_token():
         abort(400)
     mat    = str(body["mat"]).strip()
     filial = str(body["filial"]).strip()
-    dados  = body  # guarda o payload completo
     with get_db() as conn:
-        # Reusa token se já existir para este mat+filial (sem resposta ainda)
         row = conn.execute(
             "SELECT token FROM tokens_pendentes WHERE mat=%s AND filial=%s", (mat, filial)
         ).fetchone()
         if row:
             return jsonify({"token": row[0]})
-        # Gera token único
         for _ in range(10):
             token = secrets.token_urlsafe(8)
-            exists = conn.execute(
-                "SELECT 1 FROM tokens_pendentes WHERE token=%s", (token,)
-            ).fetchone()
-            if not exists:
+            if not conn.execute("SELECT 1 FROM tokens_pendentes WHERE token=%s", (token,)).fetchone():
                 break
         conn.execute(
             "INSERT INTO tokens_pendentes (token, filial, mat, dados) VALUES (%s,%s,%s,%s)",
-            (token, filial, mat, json.dumps(dados, ensure_ascii=False))
+            (token, filial, mat, json.dumps(body, ensure_ascii=False))
         )
     return jsonify({"token": token})
+
+
+@app.route("/api/criar_tokens_lote", methods=["POST"])
+@api_auth
+def api_criar_tokens_lote():
+    """Registra uma lista de funcionários em uma única transação. Retorna [{mat, filial, token}]."""
+    lista = request.get_json(silent=True)
+    if not isinstance(lista, list):
+        abort(400)
+
+    resultado = []
+    with get_db() as conn:
+        # Busca todos os tokens existentes para (mat, filial) do lote de uma vez
+        pares = [(str(d["mat"]).strip(), str(d["filial"]).strip()) for d in lista if "mat" in d and "filial" in d]
+        if not pares:
+            return jsonify([])
+
+        # Tokens já existentes
+        existentes = {}
+        if pares:
+            ph = ",".join(["(%s,%s)"] * len(pares))
+            flat = [v for p in pares for v in p]
+            rows = conn.execute(
+                f"SELECT mat, filial, token FROM tokens_pendentes WHERE (mat, filial) IN ({ph})", flat
+            ).fetchall()
+            for r in rows:
+                existentes[(r[0], r[1])] = r[2]
+
+        # Para os que não têm token, inserir em lote
+        novos = []
+        for d in lista:
+            if "mat" not in d or "filial" not in d:
+                continue
+            mat    = str(d["mat"]).strip()
+            filial = str(d["filial"]).strip()
+            if (mat, filial) in existentes:
+                resultado.append({"mat": mat, "filial": filial, "token": existentes[(mat, filial)]})
+            else:
+                for _ in range(10):
+                    token = secrets.token_urlsafe(8)
+                    if token not in existentes.values():
+                        break
+                novos.append((token, filial, mat, json.dumps(d, ensure_ascii=False)))
+                existentes[(mat, filial)] = token
+                resultado.append({"mat": mat, "filial": filial, "token": token})
+
+        if novos:
+            conn.executemany(
+                "INSERT INTO tokens_pendentes (token, filial, mat, dados) VALUES (%s,%s,%s,%s) ON CONFLICT (token) DO NOTHING",
+                novos
+            )
+
+    return jsonify(resultado)
 
 
 # ------------------------------------------------------------------
