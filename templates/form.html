@@ -479,9 +479,9 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       <div class="field">
         <label>Documento de Divórcio *</label>
         <div class="upload-box" id="box_cert_divorcio">
-          <input type="file" id="cert_casamento" name="cert_casamento" accept="image/*,application/pdf" capture="environment"
+          <input type="file" id="cert_divorcio" name="cert_casamento" accept="image/*,application/pdf" capture="environment"
                  onchange="previewArquivo(this,'prev_div','fn_div');document.getElementById('box_cert_divorcio').style.outline=''">
-          <label for="cert_casamento" class="upload-trigger">
+          <label for="cert_divorcio" class="upload-trigger">
             <div class="upload-icon">📄</div>
             <div class="upload-label">Fotografar Averbação</div>
             <div class="upload-sub">Toca aqui para fotografar ou escolher PDF</div>
@@ -730,7 +730,7 @@ function validarStep() {
       } else if (certBox) { certBox.style.outline = ''; }
       if (!ok) { alert('Preencha todos os dados do cônjuge e envie a certidão de casamento.'); return false; }
     } else if (ec === 'D') {
-      const certInp = document.getElementById('cert_casamento');
+      const certInp = document.getElementById('cert_divorcio');
       const certBox = document.getElementById('box_cert_divorcio');
       if (certInp && !certInp.files[0]) {
         if (certBox) { certBox.style.outline = '2px solid var(--red)'; certBox.scrollIntoView({behavior:'smooth', block:'center'}); }
