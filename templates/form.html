@@ -527,10 +527,10 @@ function fixTelefone() {
 }
 
 function previewArquivo(input, prevId, fnId) {
+  const box = input.closest('.upload-box');
+  if (box) box.classList.add('tem-arquivo'); // marca imediatamente (iOS fires onchange antes de files[] estar pronto)
   const file = input.files[0];
   if (!file) return;
-  const box = input.closest('.upload-box');
-  box.classList.add('tem-arquivo');
   document.getElementById(fnId).textContent = '✓ ' + file.name;
   document.getElementById(fnId).style.display = 'block';
   if (file.type.startsWith('image/')) {
