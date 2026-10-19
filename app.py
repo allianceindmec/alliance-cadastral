@@ -1,8 +1,6 @@
 import os
 import json
-import hmac
-import hashlib
-import base64
+import secrets
 from datetime import datetime
 from functools import wraps
 from flask import (Flask, render_template, request, jsonify,
@@ -14,7 +12,6 @@ import psycopg
 from psycopg.rows import dict_row
 
 app = Flask(__name__)
-SECRET_KEY   = os.environ.get("SECRET_KEY", "dev-secret-change-in-prod")
 API_KEY      = os.environ.get("API_KEY", "rh-api-key-change-in-prod")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
@@ -28,6 +25,16 @@ def get_db():
 
 def init_db():
     with get_db() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS tokens_pendentes (
+                id          SERIAL PRIMARY KEY,
+                token       TEXT UNIQUE NOT NULL,
+                filial      TEXT NOT NULL,
+                mat         TEXT NOT NULL,
+                dados       JSONB NOT NULL,
+                created_at  TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS respostas (
                 id          SERIAL PRIMARY KEY,
@@ -50,30 +57,6 @@ def init_db():
                 created_at  TIMESTAMPTZ DEFAULT NOW()
             )
         """)
-
-
-# ------------------------------------------------------------------
-# Token helpers
-# ------------------------------------------------------------------
-
-def _sign(payload: str) -> str:
-    return hmac.new(SECRET_KEY.encode(), payload.encode(), hashlib.sha256).hexdigest()[:16]
-
-
-def gerar_token(dados: dict) -> str:
-    payload = base64.urlsafe_b64encode(json.dumps(dados, ensure_ascii=False).encode()).decode()
-    sig = _sign(payload)
-    return f"{payload}.{sig}"
-
-
-def verificar_token(token: str):
-    try:
-        payload, sig = token.rsplit(".", 1)
-        if not hmac.compare_digest(sig, _sign(payload)):
-            return None
-        return json.loads(base64.urlsafe_b64decode(payload + "=="))
-    except Exception:
-        return None
 
 
 # ------------------------------------------------------------------
@@ -101,9 +84,14 @@ def index():
 
 @app.route("/atualizar/<token>", methods=["GET", "POST"])
 def formulario(token):
-    dados = verificar_token(token)
-    if dados is None:
+    # Busca dados do token no banco (novo sistema de tokens curtos)
+    with get_db() as conn:
+        tp = conn.execute(
+            "SELECT dados FROM tokens_pendentes WHERE token=%s", (token,)
+        ).fetchone()
+    if tp is None:
         return render_template("invalido.html"), 400
+    dados = tp[0] if isinstance(tp[0], dict) else json.loads(tp[0])
 
     if request.method == "GET":
         with get_db() as conn:
@@ -250,15 +238,51 @@ def api_export_zip():
 @app.route("/api/pendentes")
 @api_auth
 def api_pendentes():
-    mats = request.args.getlist("mat")
+    mats   = request.args.getlist("mat")
+    filial = request.args.get("filial", "")
     if not mats:
         return jsonify([])
+    placeholders = ",".join(["%s"] * len(mats))
+    params = mats + ([filial] if filial else [])
+    filial_clause = " AND filial=%s" if filial else ""
     with get_db() as conn:
         rows = conn.execute(
-            f"SELECT mat FROM respostas WHERE mat IN ({','.join(['%s']*len(mats))})", mats
+            f"SELECT mat FROM respostas WHERE mat IN ({placeholders}){filial_clause}", params
         ).fetchall()
     responderam = {r[0] for r in rows}
     return jsonify([m for m in mats if m not in responderam])
+
+
+@app.route("/api/criar_token", methods=["POST"])
+@api_auth
+def api_criar_token():
+    """Registra dados de um funcionário e retorna um token curto."""
+    body = request.get_json(silent=True)
+    if not body or "mat" not in body or "filial" not in body:
+        abort(400)
+    mat    = str(body["mat"]).strip()
+    filial = str(body["filial"]).strip()
+    dados  = body  # guarda o payload completo
+    with get_db() as conn:
+        # Reusa token se já existir para este mat+filial (sem resposta ainda)
+        row = conn.execute(
+            "SELECT token FROM tokens_pendentes WHERE mat=%s AND filial=%s", (mat, filial)
+        ).fetchone()
+        if row:
+            return jsonify({"token": row[0]})
+        # Gera token único
+        for _ in range(10):
+            token = secrets.token_urlsafe(8)
+            exists = conn.execute(
+                "SELECT 1 FROM tokens_pendentes WHERE token=%s", (token,)
+            ).fetchone()
+            if not exists:
+                break
+        conn.execute(
+            "INSERT INTO tokens_pendentes (token, filial, mat, dados) VALUES (%s,%s,%s,%s)",
+            (token, filial, mat, json.dumps(dados, ensure_ascii=False))
+        )
+    return jsonify({"token": token})
 
 
 # ------------------------------------------------------------------
