@@ -932,7 +932,7 @@ function addDep(data) {
       <input type="text" id="dcid${i}" value="${(data&&data.cidade_nasc)||''}" placeholder="Ex: São Paulo">
     </div>
     <div class="field">
-      <label>Certidão de Nascimento ou Casamento *</label>
+      <label>Certidão de Nascimento *</label>
       <div class="upload-box" id="box_cert_nasc_${i}">
         <input type="file" id="cert_nasc_${i}" name="cert_nasc_${i}" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_dep${i}','fn_dep${i}');document.getElementById('box_cert_nasc_${i}').style.outline=''">
         <label for="cert_nasc_${i}" class="upload-trigger">
