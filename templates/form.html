@@ -79,11 +79,11 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 /* UPLOAD / CAMERA */
 .upload-box {
   border: 2px dashed var(--border); border-radius: var(--radius);
-  padding: 20px 16px; text-align: center; cursor: pointer;
-  transition: all .2s; background: var(--bg); position: relative;
+  text-align: center; transition: all .2s; background: var(--bg);
 }
 .upload-box:hover, .upload-box.tem-arquivo { border-color: var(--purple); background: #f5f2ff; }
-.upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-box input[type=file] { display: none; }
+.upload-trigger { display: block; padding: 20px 16px; cursor: pointer; }
 .upload-icon { font-size: 36px; margin-bottom: 8px; }
 .upload-label { font-size: 13px; font-weight: 600; color: var(--purple); }
 .upload-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
@@ -260,9 +260,11 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Tire uma selfie com boa iluminação, fundo claro, rosto centralizado.</p>
       <div class="upload-box">
         <input type="file" id="foto_rosto" name="foto_rosto" accept="image/*" capture="user" onchange="previewArquivo(this,'prev_rosto','fn_rosto')">
-        <div class="upload-icon">🤳</div>
-        <div class="upload-label">Tirar Selfie</div>
-        <div class="upload-sub">Toca aqui para abrir a câmera frontal</div>
+        <label for="foto_rosto" class="upload-trigger">
+          <div class="upload-icon">🤳</div>
+          <div class="upload-label">Tirar Selfie</div>
+          <div class="upload-sub">Toca aqui para abrir a câmera frontal</div>
+        </label>
         <img id="prev_rosto" class="upload-preview">
         <div id="fn_rosto" class="upload-filename"></div>
       </div>
@@ -273,9 +275,11 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Conta de luz, água ou telefone fixo dos últimos 3 meses.</p>
       <div class="upload-box">
         <input type="file" id="comprovante_endereco" name="comprovante_endereco" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_comp','fn_comp')">
-        <div class="upload-icon">🏠</div>
-        <div class="upload-label">Fotografar Comprovante</div>
-        <div class="upload-sub">Toca aqui para fotografar ou escolher PDF</div>
+        <label for="comprovante_endereco" class="upload-trigger">
+          <div class="upload-icon">🏠</div>
+          <div class="upload-label">Fotografar Comprovante</div>
+          <div class="upload-sub">Toca aqui para fotografar ou escolher PDF</div>
+        </label>
         <img id="prev_comp" class="upload-preview">
         <div id="fn_comp" class="upload-filename"></div>
       </div>
@@ -285,9 +289,11 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       <div class="card-title">💍 Certidão de Casamento / Divórcio</div>
       <div class="upload-box">
         <input type="file" id="cert_casamento" name="cert_casamento" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_cas','fn_cas')">
-        <div class="upload-icon">📋</div>
-        <div class="upload-label">Fotografar Certidão</div>
-        <div class="upload-sub">Toca aqui para fotografar</div>
+        <label for="cert_casamento" class="upload-trigger">
+          <div class="upload-icon">📋</div>
+          <div class="upload-label">Fotografar Certidão</div>
+          <div class="upload-sub">Toca aqui para fotografar</div>
+        </label>
         <img id="prev_cas" class="upload-preview">
         <div id="fn_cas" class="upload-filename"></div>
       </div>
@@ -478,9 +484,11 @@ function addDep(data) {
       <label>Certidão de Nascimento</label>
       <div class="upload-box">
         <input type="file" id="cert_nasc_${i}" name="cert_nasc_${i}" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_dep${i}','fn_dep${i}')">
-        <div class="upload-icon">📋</div>
-        <div class="upload-label">Fotografar Certidão</div>
-        <div class="upload-sub">Toca aqui</div>
+        <label for="cert_nasc_${i}" class="upload-trigger">
+          <div class="upload-icon">📋</div>
+          <div class="upload-label">Fotografar Certidão</div>
+          <div class="upload-sub">Toca aqui</div>
+        </label>
         <img id="prev_dep${i}" class="upload-preview">
         <div id="fn_dep${i}" class="upload-filename"></div>
       </div>
