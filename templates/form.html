@@ -75,6 +75,10 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 .field textarea { resize: vertical; min-height: 70px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) {
+  .row2 { grid-template-columns: 1fr; }
+  .row3 { grid-template-columns: 1fr; }
+}
 
 /* UPLOAD / CAMERA */
 .upload-box {
@@ -254,7 +258,7 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       <div class="card-title">🪪 Documentos Pessoais *</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Fotografe ou escaneie cada documento. Frente e verso do RG em fotos separadas.</p>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="row2">
         <div class="field">
           <label>CPF (frente) *</label>
           <div class="upload-box" id="box_doc_cpf">
