@@ -382,6 +382,22 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
         <input type="text" name="cidade" id="cidade" value="{{ d.cidade }}" required>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-title">📄 Comprovante de Endereço *</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Conta de luz, água ou telefone fixo dos últimos 3 meses.</p>
+      <div class="upload-box" id="box_comprovante_endereco">
+        <input type="file" id="comprovante_endereco" name="comprovante_endereco" accept="image/*,application/pdf" capture="environment"
+               onchange="previewArquivo(this,'prev_comp','fn_comp');document.getElementById('box_comprovante_endereco').style.outline=''">
+        <label for="comprovante_endereco" class="upload-trigger">
+          <div class="upload-icon">🏠</div>
+          <div class="upload-label">Fotografar Comprovante</div>
+          <div class="upload-sub">Toca aqui para fotografar ou escolher PDF</div>
+        </label>
+        <img id="prev_comp" class="upload-preview">
+        <div id="fn_comp" class="upload-filename"></div>
+      </div>
+    </div>
   </div>
 
   <!-- SEÇÃO 2: FOTOS / DOCUMENTOS -->
@@ -398,21 +414,6 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
         </label>
         <img id="prev_rosto" class="upload-preview">
         <div id="fn_rosto" class="upload-filename"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">📄 Comprovante de Endereço</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Conta de luz, água ou telefone fixo dos últimos 3 meses.</p>
-      <div class="upload-box">
-        <input type="file" id="comprovante_endereco" name="comprovante_endereco" accept="image/*,application/pdf" capture="environment" onchange="previewArquivo(this,'prev_comp','fn_comp')">
-        <label for="comprovante_endereco" class="upload-trigger">
-          <div class="upload-icon">🏠</div>
-          <div class="upload-label">Fotografar Comprovante</div>
-          <div class="upload-sub">Toca aqui para fotografar ou escolher PDF</div>
-        </label>
-        <img id="prev_comp" class="upload-preview">
-        <div id="fn_comp" class="upload-filename"></div>
       </div>
     </div>
 
@@ -612,8 +613,8 @@ function validarStep() {
 
   // Documentos pessoais obrigatórios (step 0)
   if (step === 0) {
-    const docsObrig = ['box_doc_cpf', 'box_doc_rg_frente', 'box_doc_rg_verso', 'box_doc_cert_nasc_func'];
-    const inputIds  = ['doc_cpf',     'doc_rg_frente',     'doc_rg_verso',     'doc_cert_nasc_func'];
+    const docsObrig = ['box_doc_cpf', 'box_doc_rg_frente', 'box_doc_rg_verso'];
+    const inputIds  = ['doc_cpf',     'doc_rg_frente',     'doc_rg_verso'];
     let faltando = [];
     inputIds.forEach((id, i) => {
       const inp = document.getElementById(id);
@@ -627,27 +628,31 @@ function validarStep() {
       }
     });
     if (!ok) {
-      alert('📄 Envie as fotos de todos os documentos (CPF, RG frente, RG verso e Certidão de Nascimento) antes de continuar.');
+      alert('📄 Envie as fotos dos documentos (CPF, RG frente e RG verso) antes de continuar.');
       return false;
     }
   }
 
-  // Fotos obrigatórias na aba Fotos (step 2) — selfie e comprovante
-  if (step === 2) {
-    ['foto_rosto', 'comprovante_endereco'].forEach(id => {
-      const inp = document.getElementById(id);
-      const box = inp ? inp.closest('.upload-box') : null;
-      if (inp && !inp.files[0]) {
-        if (box) box.style.outline = '2px solid var(--red)';
-        ok = false;
-      } else {
-        if (box) box.style.outline = '';
-      }
-    });
-    if (!ok) {
-      alert('📸 Envie a Selfie e o Comprovante de Endereço antes de continuar.');
+  // Comprovante de endereço obrigatório (step 1)
+  if (step === 1) {
+    const inp = document.getElementById('comprovante_endereco');
+    const box = document.getElementById('box_comprovante_endereco');
+    if (!inp || !inp.files[0]) {
+      if (box) { box.style.outline = '2px solid var(--red)'; box.scrollIntoView({behavior:'smooth', block:'center'}); }
+      alert('📄 Envie o Comprovante de Endereço antes de continuar.');
       return false;
-    }
+    } else if (box) { box.style.outline = ''; }
+  }
+
+  // Selfie obrigatória na aba Fotos (step 2)
+  if (step === 2) {
+    const inp = document.getElementById('foto_rosto');
+    const box = inp ? inp.closest('.upload-box') : null;
+    if (!inp || !inp.files[0]) {
+      if (box) box.style.outline = '2px solid var(--red)';
+      alert('📸 Tire a selfie antes de continuar.');
+      return false;
+    } else if (box) { box.style.outline = ''; }
   }
 
   // Família / Cônjuge (step 3)
@@ -1019,20 +1024,12 @@ function renderResumo() {
 
 async function enviar() {
   // Verificação final das fotos obrigatórias
-  const fotosFaltando = ['foto_rosto', 'comprovante_endereco'].filter(id => {
-    const inp = document.getElementById(id);
-    return !inp || !inp.files[0];
-  });
-  if (fotosFaltando.length) {
-    const nomes = { foto_rosto: 'Selfie', comprovante_endereco: 'Comprovante de Endereço' };
-    const lista = fotosFaltando.map(id => nomes[id]).join(' e ');
-    if (confirm(`⚠️ ${lista} ainda não ${fotosFaltando.length > 1 ? 'foram enviados' : 'foi enviado'}.\n\nIr para a aba Fotos agora?`)) {
+  const inp_selfie = document.getElementById('foto_rosto');
+  if (!inp_selfie || !inp_selfie.files[0]) {
+    if (confirm('⚠️ Selfie não enviada.\n\nIr para a aba Fotos agora?')) {
       irPara(2);
-      // Destaca as caixas faltando
-      fotosFaltando.forEach(id => {
-        const box = document.getElementById(id)?.closest('.upload-box');
-        if (box) { box.style.outline = '2px solid var(--red)'; box.scrollIntoView({behavior:'smooth', block:'center'}); }
-      });
+      const box = inp_selfie?.closest('.upload-box');
+      if (box) { box.style.outline = '2px solid var(--red)'; box.scrollIntoView({behavior:'smooth', block:'center'}); }
     }
     return;
   }
