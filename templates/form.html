@@ -828,6 +828,45 @@ function fixTelefone() {
 let _selfieBlob = null;
 let _selfieNome = '';
 
+function buscarCep(input) {
+  // Auto-formata 00000-000
+  let v = input.value.replace(/\D/g, '').slice(0, 8);
+  if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+  input.value = v;
+
+  const cep = v.replace(/\D/g, '');
+  if (cep.length !== 8) return;
+
+  input.style.borderColor = '';
+  const campos = {
+    endereco: document.getElementById('endereco'),
+    bairro:   document.getElementById('bairro'),
+    cidade:   document.getElementById('cidade'),
+    estado:   document.getElementById('estado'),
+  };
+
+  // Indicador visual de carregando
+  input.style.borderColor = '#a78bfa';
+  fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    .then(r => r.json())
+    .then(d => {
+      if (d.erro) {
+        input.style.borderColor = '#dc2626';
+        return;
+      }
+      input.style.borderColor = '#16a34a';
+      if (campos.endereco && !campos.endereco.value) campos.endereco.value = d.logradouro || '';
+      else if (campos.endereco && d.logradouro)      campos.endereco.value = d.logradouro;
+      if (campos.bairro)  campos.bairro.value  = d.bairro    || '';
+      if (campos.cidade)  campos.cidade.value  = d.localidade|| '';
+      if (campos.estado)  campos.estado.value  = d.uf        || '';
+      // Foca o número após preencher
+      const num = document.getElementById('numero');
+      if (num && !num.value) setTimeout(() => num.focus(), 100);
+    })
+    .catch(() => { input.style.borderColor = '#dc2626'; });
+}
+
 function fmtCPF(input) {
   let v = input.value.replace(/\D/g, '').slice(0, 11);
   if (v.length > 9)      v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
