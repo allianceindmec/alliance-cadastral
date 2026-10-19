@@ -251,6 +251,69 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
       </div>
     </div>
     <div class="card">
+      <div class="card-title">🪪 Documentos Pessoais *</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Fotografe ou escaneie cada documento. Frente e verso do RG em fotos separadas.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field">
+          <label>CPF (frente) *</label>
+          <div class="upload-box" id="box_doc_cpf">
+            <input type="file" id="doc_cpf" name="doc_cpf" accept="image/*,application/pdf" capture="environment"
+                   onchange="previewArquivo(this,'prev_doc_cpf','fn_doc_cpf');document.getElementById('box_doc_cpf').style.outline=''">
+            <label for="doc_cpf" class="upload-trigger" style="padding:14px 8px">
+              <div class="upload-icon" style="font-size:24px">🪪</div>
+              <div class="upload-label" style="font-size:12px">Fotografar CPF</div>
+            </label>
+            <img id="prev_doc_cpf" class="upload-preview">
+            <div id="fn_doc_cpf" class="upload-filename"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Certidão de Nascimento *</label>
+          <div class="upload-box" id="box_doc_cert_nasc_func">
+            <input type="file" id="doc_cert_nasc_func" name="doc_cert_nasc_func" accept="image/*,application/pdf" capture="environment"
+                   onchange="previewArquivo(this,'prev_doc_cert_nasc','fn_doc_cert_nasc');document.getElementById('box_doc_cert_nasc_func').style.outline=''">
+            <label for="doc_cert_nasc_func" class="upload-trigger" style="padding:14px 8px">
+              <div class="upload-icon" style="font-size:24px">📜</div>
+              <div class="upload-label" style="font-size:12px">Certidão Nasc.</div>
+            </label>
+            <img id="prev_doc_cert_nasc" class="upload-preview">
+            <div id="fn_doc_cert_nasc" class="upload-filename"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>RG — Frente *</label>
+          <div class="upload-box" id="box_doc_rg_frente">
+            <input type="file" id="doc_rg_frente" name="doc_rg_frente" accept="image/*" capture="environment"
+                   onchange="previewArquivo(this,'prev_rg_f','fn_rg_f');document.getElementById('box_doc_rg_frente').style.outline=''">
+            <label for="doc_rg_frente" class="upload-trigger" style="padding:14px 8px">
+              <div class="upload-icon" style="font-size:24px">🪪</div>
+              <div class="upload-label" style="font-size:12px">RG Frente</div>
+            </label>
+            <img id="prev_rg_f" class="upload-preview">
+            <div id="fn_rg_f" class="upload-filename"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>RG — Verso *</label>
+          <div class="upload-box" id="box_doc_rg_verso">
+            <input type="file" id="doc_rg_verso" name="doc_rg_verso" accept="image/*" capture="environment"
+                   onchange="previewArquivo(this,'prev_rg_v','fn_rg_v');document.getElementById('box_doc_rg_verso').style.outline=''">
+            <label for="doc_rg_verso" class="upload-trigger" style="padding:14px 8px">
+              <div class="upload-icon" style="font-size:24px">🪪</div>
+              <div class="upload-label" style="font-size:12px">RG Verso</div>
+            </label>
+            <img id="prev_rg_v" class="upload-preview">
+            <div id="fn_rg_v" class="upload-filename"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">🚨 Contato de Emergência</div>
       <div class="field">
         <label>Nome do Contato *</label>
@@ -546,6 +609,28 @@ function validarStep() {
       c.style.borderColor = '';
     }
   });
+
+  // Documentos pessoais obrigatórios (step 0)
+  if (step === 0) {
+    const docsObrig = ['box_doc_cpf', 'box_doc_rg_frente', 'box_doc_rg_verso', 'box_doc_cert_nasc_func'];
+    const inputIds  = ['doc_cpf',     'doc_rg_frente',     'doc_rg_verso',     'doc_cert_nasc_func'];
+    let faltando = [];
+    inputIds.forEach((id, i) => {
+      const inp = document.getElementById(id);
+      const box = document.getElementById(docsObrig[i]);
+      if (!inp || !inp.files[0]) {
+        if (box) box.style.outline = '2px solid var(--red)';
+        faltando.push(id);
+        ok = false;
+      } else {
+        if (box) box.style.outline = '';
+      }
+    });
+    if (!ok) {
+      alert('📄 Envie as fotos de todos os documentos (CPF, RG frente, RG verso e Certidão de Nascimento) antes de continuar.');
+      return false;
+    }
+  }
 
   // Fotos obrigatórias na aba Fotos (step 2) — selfie e comprovante
   if (step === 2) {
@@ -982,7 +1067,8 @@ async function enviar() {
   form.append('dependentes_json',         JSON.stringify(getDepsData()));
 
   // Arquivos
-  ['foto_rosto','comprovante_endereco','cert_casamento'].forEach(id => {
+  ['foto_rosto','comprovante_endereco','cert_casamento',
+   'doc_cpf','doc_rg_frente','doc_rg_verso','doc_cert_nasc_func'].forEach(id => {
     const inp = document.getElementById(id);
     if (inp && inp.files[0]) form.append(id, inp.files[0]);
   });

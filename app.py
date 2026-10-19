@@ -134,7 +134,8 @@ def formulario(token):
         "dependentes":   json.loads(form.get("dependentes_json", "[]")),
     }
 
-    CAMPOS_ARQUIVO = ["foto_rosto", "comprovante_endereco", "cert_casamento"]
+    CAMPOS_ARQUIVO = ["foto_rosto", "comprovante_endereco", "cert_casamento",
+                      "doc_cpf", "doc_rg_frente", "doc_rg_verso", "doc_cert_nasc_func"]
     for i in range(10):
         CAMPOS_ARQUIVO.append(f"cert_nasc_{i}")
     for i in range(20):
