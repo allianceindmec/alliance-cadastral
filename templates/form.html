@@ -194,10 +194,9 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 <div class="steps" id="steps">
   <button class="step-btn ativo" onclick="irPara(0)"><span class="step-num">👤</span>Pessoal</button>
   <button class="step-btn" onclick="irPara(1)"><span class="step-num">🏠</span>Endereço</button>
-  <button class="step-btn" onclick="irPara(2)"><span class="step-num">📄</span>Docs</button>
-  <button class="step-btn" onclick="irPara(3)"><span class="step-num">🎓</span>Escolaridade</button>
-  <button class="step-btn" onclick="irPara(4)"><span class="step-num">👶</span>Dependentes</button>
-  <button class="step-btn" onclick="irPara(5)"><span class="step-num">✅</span>Revisar</button>
+  <button class="step-btn" onclick="irPara(2)"><span class="step-num">🎓</span>Escolaridade</button>
+  <button class="step-btn" onclick="irPara(3)"><span class="step-num">👶</span>Dependentes</button>
+  <button class="step-btn" onclick="irPara(4)"><span class="step-num">✅</span>Revisar</button>
 </div>
 
 <div class="container">
@@ -339,10 +338,6 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
         <div id="fn_comp" class="upload-filename"></div>
       </div>
     </div>
-  </div>
-
-  <!-- SEÇÃO 2: DOCUMENTOS -->
-  <div class="section" id="sec2">
     <div class="card" id="card_cert_casamento" style="display:none">
       <div class="card-title">💍 Certidão de Casamento / Divórcio</div>
       <div class="upload-box">
@@ -358,8 +353,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     </div>
   </div>
 
-  <!-- SEÇÃO 3: ESCOLARIDADE -->
-  <div class="section" id="sec3">
+  <!-- SEÇÃO 2: ESCOLARIDADE -->
+  <div class="section" id="sec2">
     <div class="card">
       <div class="card-title">🎓 Escolaridade</div>
       <div class="field">
@@ -385,8 +380,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     <p style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center">Curso técnico, faculdade, pós, idiomas, etc. Se não tiver, clique em Próximo.</p>
   </div>
 
-  <!-- SEÇÃO 4: DEPENDENTES -->
-  <div class="section" id="sec4">
+  <!-- SEÇÃO 3: DEPENDENTES -->
+  <div class="section" id="sec3">
     <div class="card" style="margin-bottom:12px">
       <div class="card-title">👶 Dependentes</div>
       <p style="font-size:13px;color:var(--muted)">Informe apenas filhos até 21 anos (ou inválidos de qualquer idade). Se não tiver dependentes, clique em Próximo.</p>
@@ -397,8 +392,8 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
     <button class="btn-add-dep" type="button" onclick="addDep()">+ Adicionar Dependente</button>
   </div>
 
-  <!-- SEÇÃO 5: REVISÃO -->
-  <div class="section" id="sec5">
+  <!-- SEÇÃO 4: REVISÃO -->
+  <div class="section" id="sec4">
     <div class="card">
       <div class="card-title">✅ Revisar e Enviar</div>
       <div id="resumo" style="font-size:14px;line-height:1.8"></div>
@@ -425,7 +420,7 @@ body { font-family: 'Inter',sans-serif; background: var(--bg); color: var(--text
 
 <script>
 let step = 0;
-const TOTAL = 6;
+const TOTAL = 5;
 let depIdx = 0;
 let cursoIdx = 0;
 let deps = [];
@@ -652,11 +647,17 @@ function addCurso(data) {
       <label>Instituição *</label>
       <input type="text" id="cinst${i}" value="${(data&&data.instituicao)||''}" placeholder="Ex: SENAI, USP, UNESP..." required>
     </div>
-    <div class="field">
-      <label style="display:flex;align-items:center;gap:6px">
-        <input type="checkbox" id="cand${i}" onchange="toggleAndamento(${i})" ${(data&&data.em_andamento)?'checked':''}>
-        <span>Em andamento (não concluído)</span>
-      </label>
+    <div id="cand_toggle${i}" onclick="toggleAndamento(${i})"
+      style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;
+             border:2px solid var(--border);background:var(--bg);margin-bottom:14px;transition:all .2s;
+             ${(data&&data.em_andamento)?'border-color:var(--green);background:#f0fdf4;':''}"
+    >
+      <div id="cand_dot${i}" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);
+           flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;
+           ${(data&&data.em_andamento)?'background:var(--green);border-color:var(--green);':''}"
+      >${(data&&data.em_andamento)?'<span style=\\'color:white;font-size:13px;line-height:1\\'>✓</span>':''}</div>
+      <input type="checkbox" id="cand${i}" style="display:none" ${(data&&data.em_andamento)?'checked':''}>
+      <span style="font-size:13px;font-weight:600;${(data&&data.em_andamento)?'color:var(--green);':'color:var(--muted);'}">Em andamento (ainda não concluído)</span>
     </div>
     <div class="field">
       <label>Certificado / Diploma (foto ou PDF)</label>
@@ -681,10 +682,25 @@ function remCurso(i) {
 }
 
 function toggleAndamento(i) {
-  const cb = document.getElementById('cand'+i);
+  const cb  = document.getElementById('cand'+i);
   const inp = document.getElementById('cano'+i);
-  if (cb.checked) { inp.value = ''; inp.disabled = true; inp.placeholder = 'Em andamento'; }
-  else { inp.disabled = false; inp.placeholder = 'Ex: 2020'; }
+  const tog = document.getElementById('cand_toggle'+i);
+  const dot = document.getElementById('cand_dot'+i);
+  const lbl = tog.querySelector('span');
+  cb.checked = !cb.checked;
+  if (cb.checked) {
+    inp.value = ''; inp.disabled = true; inp.placeholder = 'Em andamento';
+    tog.style.borderColor = 'var(--green)'; tog.style.background = '#f0fdf4';
+    dot.style.background = 'var(--green)'; dot.style.borderColor = 'var(--green)';
+    dot.innerHTML = '<span style="color:white;font-size:13px;line-height:1">✓</span>';
+    lbl.style.color = 'var(--green)';
+  } else {
+    inp.disabled = false; inp.placeholder = 'Ex: 2020';
+    tog.style.borderColor = 'var(--border)'; tog.style.background = 'var(--bg)';
+    dot.style.background = ''; dot.style.borderColor = 'var(--border)';
+    dot.innerHTML = '';
+    lbl.style.color = 'var(--muted)';
+  }
 }
 
 function getCursosData() {
