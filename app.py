@@ -92,6 +92,25 @@ def formulario(token):
     if tp is None:
         return render_template("invalido.html"), 400
     dados = tp[0] if isinstance(tp[0], dict) else json.loads(tp[0])
+    # Garante campos esperados pelo template mesmo em tokens importados sem dados completos
+    dados.setdefault("dependentes", [])
+    dados.setdefault("cursos", [])
+    dados.setdefault("nome", "")
+    dados.setdefault("cpf", "")
+    dados.setdefault("rg", "")
+    dados.setdefault("email", "")
+    dados.setdefault("telefone", "")
+    dados.setdefault("estado_civil", "")
+    dados.setdefault("cep", "")
+    dados.setdefault("endereco", "")
+    dados.setdefault("numero", "")
+    dados.setdefault("complemento", "")
+    dados.setdefault("bairro", "")
+    dados.setdefault("cidade", "")
+    dados.setdefault("estado", "")
+    dados.setdefault("grau_escolaridade", "")
+    dados.setdefault("dt_nasc", "")
+    dados.setdefault("conjuge", {})
 
     if request.method == "GET":
         with get_db() as conn:
