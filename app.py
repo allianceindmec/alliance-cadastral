@@ -268,6 +268,19 @@ def api_resposta_single(resp_id):
     return jsonify(d)
 
 
+@app.route("/api/limpar_arquivos/<int:resp_id>", methods=["POST"])
+@api_auth
+def api_limpar_arquivos(resp_id):
+    """Apaga o binário dos arquivos de uma resposta já baixada, mantendo o registro."""
+    with get_db() as conn:
+        resultado = conn.execute(
+            "UPDATE arquivos SET dados = '\\x'::bytea WHERE resposta_id = %s AND length(dados) > 0",
+            (resp_id,)
+        )
+        conn.commit()
+    return jsonify({"ok": True, "resp_id": resp_id})
+
+
 @app.route("/api/responderam")
 @api_auth
 def api_responderam():
