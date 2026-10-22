@@ -422,10 +422,11 @@ def api_criar_tokens_lote():
                 resultado.append({"mat": mat, "filial": filial, "token": token})
 
         if novos:
-            conn.executemany(
-                "INSERT INTO tokens_pendentes (token, filial, mat, dados) VALUES (%s,%s,%s,%s) ON CONFLICT (token) DO NOTHING",
-                novos
-            )
+            with conn.cursor() as cur:
+                cur.executemany(
+                    "INSERT INTO tokens_pendentes (token, filial, mat, dados) VALUES (%s,%s,%s,%s) ON CONFLICT (token) DO NOTHING",
+                    novos
+                )
 
     return jsonify(resultado)
 
