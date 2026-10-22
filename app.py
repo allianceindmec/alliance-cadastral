@@ -324,7 +324,7 @@ def api_import_tokens():
             dados  = item.get("dados")
             if not token or not filial or not mat:
                 continue
-            dados_str = json.dumps(dados, ensure_ascii=False) if isinstance(dados, dict) else str(dados)
+            dados_str = json.dumps(dados if isinstance(dados, dict) else item, ensure_ascii=False)
             conn.execute(
                 "INSERT INTO tokens_pendentes (token, filial, mat, dados) VALUES (%s,%s,%s,%s) ON CONFLICT (token) DO NOTHING",
                 (token, filial, mat, dados_str)
