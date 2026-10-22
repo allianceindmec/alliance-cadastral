@@ -296,6 +296,43 @@ def api_responderam():
     return jsonify([{"mat": r[0], "filial": r[1]} for r in rows])
 
 
+@app.route("/api/export_tokens")
+@api_auth
+def api_export_tokens():
+    """Exporta todos os tokens pendentes para backup antes de recriar o banco."""
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT token, filial, mat, dados FROM tokens_pendentes ORDER BY id"
+        ).fetchall()
+    result = [{"token": r[0], "filial": r[1], "mat": r[2], "dados": r[3]} for r in rows]
+    return jsonify(result)
+
+
+@app.route("/api/import_tokens", methods=["POST"])
+@api_auth
+def api_import_tokens():
+    """Reimporta tokens exportados para um banco novo."""
+    lista = request.get_json(silent=True)
+    if not isinstance(lista, list):
+        abort(400)
+    inseridos = 0
+    with get_db() as conn:
+        for item in lista:
+            token  = item.get("token", "").strip()
+            filial = item.get("filial", "").strip()
+            mat    = item.get("mat", "").strip()
+            dados  = item.get("dados")
+            if not token or not filial or not mat:
+                continue
+            dados_str = json.dumps(dados, ensure_ascii=False) if isinstance(dados, dict) else str(dados)
+            conn.execute(
+                "INSERT INTO tokens_pendentes (token, filial, mat, dados) VALUES (%s,%s,%s,%s) ON CONFLICT (token) DO NOTHING",
+                (token, filial, mat, dados_str)
+            )
+            inseridos += 1
+    return jsonify({"ok": True, "inseridos": inseridos})
+
+
 @app.route("/api/pendentes")
 @api_auth
 def api_pendentes():
