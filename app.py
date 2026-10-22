@@ -345,7 +345,7 @@ def api_import_tokens():
                 continue
             dados_str = json.dumps(dados if isinstance(dados, dict) else item, ensure_ascii=False)
             conn.execute(
-                "INSERT INTO tokens_pendentes (token, filial, mat, dados) VALUES (%s,%s,%s,%s) ON CONFLICT (token) DO NOTHING",
+                "INSERT INTO tokens_pendentes (token, filial, mat, dados) VALUES (%s,%s,%s,%s) ON CONFLICT (token) DO UPDATE SET filial=EXCLUDED.filial, mat=EXCLUDED.mat, dados=EXCLUDED.dados",
                 (token, filial, mat, dados_str)
             )
             inseridos += 1
